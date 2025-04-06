@@ -6,30 +6,28 @@ the Site.</p>
     <li>The Site is presented to you AS IS, without any warranty, express or
     implied. You will not hold the Site or its staff members liable for damages
     caused by the use of the site.</li>
-    <li>The Site reserves the right to delete or modify your account, or any
+    <li>The Site reserves the right to delete or modify your account or any
     content you have posted to the site.</li>
     <li>The Site reserves the right to change these Terms of Service without
     prior notice.</li>
-    <li>If you are a minor, then you will not use the Site.</li>
+    <li>If you are a minor (Under 18), then you will not use the Site.</li>
     <li>You are using the Site only for personal use.</li>
-    <li>You will not spam, troll or offend anyone.</li>
+    <li>You will not spam, troll, attack, dox, anyone.</li>
     <li>You accept that the Site is not liable for any content that you may
-    stumble upon.</li>
+    stumble upon. Please report any illegal content.</li>
 </ul>
 
 <p class='section' id='section-prohibited-content'><strong>Prohibited content</strong></p>
 
 <ul>
-    <li>Child pornography: any photograph or photorealistic drawing or movie
-    that depicts children in a sexual manner. This includes nudity, explicit
-    sex, implied sex, or sexually persuasive positions.</li>
+    <li>Any photograph or live-action video. Only exception is photograph of artwork.</li>
 
-    <li>Bestiality: any photograph or photorealistic drawing or movie that
-    depicts humans having sex (either explicit or implied) with other non-human
-    animals.</li>
+    <li>Non-furry/feral related material. Humans okay if anthro/feral is present.</li>
 
-    <li>Any depiction of extreme mutilation, extreme bodily distension,
-    feces.</li>
+    <li>Low quality or low resolution artwork (under 500 pixels).</li>
+
+    <li>Any depiction of mutilation, bodily distension (gore/guro/vore),
+    feces, rape, or promotion of self-harm and terrorist activity.</li>
 
     <li>Personal images: any image that is suspected to be uploaded for
     personal use. This includes, but is not limited to, avatars and forum
