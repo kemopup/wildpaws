@@ -23,8 +23,8 @@
     %><% } %><%
     %><% if (ctx.enableSafety && ctx.canBulkEditSafety) { %><%
         %><form class='horizontal bulk-edit bulk-edit-safety'><%
-            %><a href class='mousetrap button append open'>Mass edit safety</a><%
-            %><a href class='mousetrap button append close'>Stop editing safety</a><%
+            %><a href class='mousetrap button append open'>Mass edit maturity</a><%
+            %><a href class='mousetrap button append close'>Stop editing maturity</a><%
         %></form><%
     %><% } %><%
     %><% if (ctx.canBulkDelete) { %><%
