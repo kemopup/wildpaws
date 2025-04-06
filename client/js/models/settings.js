@@ -17,8 +17,8 @@ const defaultSettings = {
     autoplayVideos: false,
     postsPerPage: 42,
     tagUnderscoresAsSpaces: false,
-    darkTheme: false,
-    postFlow: false,
+    darkTheme: true,
+    postFlow: true,
 };
 
 class Settings extends events.EventTarget {
