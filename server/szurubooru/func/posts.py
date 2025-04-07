@@ -79,9 +79,9 @@ class InvalidPostFlagError(errors.ValidationError):
 
 
 SAFETY_MAP = {
-    model.Post.SAFETY_SAFE: "safe",
-    model.Post.SAFETY_SKETCHY: "sketchy",
-    model.Post.SAFETY_UNSAFE: "unsafe",
+    model.Post.SAFETY_SAFE: "clean",
+    model.Post.SAFETY_SKETCHY: "suggestive",
+    model.Post.SAFETY_UNSAFE: "mature",
 }
 
 TYPE_MAP = {

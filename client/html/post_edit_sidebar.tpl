@@ -6,7 +6,7 @@
 
         <% if (ctx.enableSafety && ctx.canEditPostSafety) { %>
             <section class='safety'>
-                <label>Safety</label>
+                <label>Maturity</label>
                 <div class='radio-wrapper'>
                     <%= ctx.makeRadio({
                         name: 'safety',

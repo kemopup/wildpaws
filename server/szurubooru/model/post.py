@@ -186,9 +186,9 @@ class PostSignature(Base):
 class Post(Base):
     __tablename__ = "post"
 
-    SAFETY_SAFE = "safe"
-    SAFETY_SKETCHY = "sketchy"
-    SAFETY_UNSAFE = "unsafe"
+    SAFETY_SAFE = "clean"
+    SAFETY_SKETCHY = "suggestive"
+    SAFETY_UNSAFE = "mature"
 
     TYPE_IMAGE = "image"
     TYPE_ANIMATION = "animation"
