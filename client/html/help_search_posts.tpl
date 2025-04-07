@@ -195,12 +195,12 @@
             <td>alias of <code>feature-time</code></td>
         </tr>
         <tr>
-            <td><code>maturity</code></td>
-            <td>having given maturity</td>
+            <td><code>safety</code></td>
+            <td>having given safety</td>
         </tr>
         <tr>
             <td><code>rating</code></td>
-            <td>alias of <code>maturity</code></td>
+            <td>alias of <code>safety</code></td>
         </tr>
     </tbody>
 </table>

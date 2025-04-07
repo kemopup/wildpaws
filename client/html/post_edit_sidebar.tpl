@@ -11,18 +11,18 @@
                     <%= ctx.makeRadio({
                         name: 'safety',
                         class: 'safety-safe',
-                        value: 'clean',
+                        value: 'safe',
                         selectedValue: ctx.post.safety,
                         text: 'Clean'}) %>
                     <%= ctx.makeRadio({
                         name: 'safety',
                         class: 'safety-sketchy',
-                        value: 'suggestive',
+                        value: 'sketchy',
                         selectedValue: ctx.post.safety,
                         text: 'Suggestive'}) %>
                     <%= ctx.makeRadio({
                         name: 'safety',
-                        value: 'mature',
+                        value: 'unsafe',
                         selectedValue: ctx.post.safety,
                         class: 'safety-unsafe',
                         text: 'Mature'}) %>

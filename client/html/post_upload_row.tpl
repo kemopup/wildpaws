@@ -43,7 +43,7 @@
         <div class='body'>
             <% if (ctx.enableSafety) { %>
                 <div class='safety'>
-                    <% for (let safety of ['clean', 'suggestive', 'mature']) { %>
+                    <% for (let safety of ['safe', 'sketchy', 'unsafe']) { %>
                         <%= ctx.makeRadio({
                             name: 'safety-' + ctx.uploadable.key,
                             value: safety,
