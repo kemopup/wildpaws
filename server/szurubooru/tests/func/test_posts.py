@@ -332,9 +332,9 @@ def test_create_post(user_factory, fake_datetime):
 @pytest.mark.parametrize(
     "input_safety,expected_safety",
     [
-        ("clean", model.Post.SAFETY_SAFE),
-        ("suggestive", model.Post.SAFETY_SKETCHY),
-        ("mature", model.Post.SAFETY_UNSAFE),
+        ("safe", model.Post.SAFETY_SAFE),
+        ("sketchy", model.Post.SAFETY_SKETCHY),
+        ("unsafe", model.Post.SAFETY_UNSAFE),
     ],
 )
 def test_update_post_safety(input_safety, expected_safety):

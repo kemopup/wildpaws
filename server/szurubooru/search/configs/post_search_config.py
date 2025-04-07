@@ -31,10 +31,10 @@ def _type_transformer(value: str) -> str:
 
 def _safety_transformer(value: str) -> str:
     available_values = {
-        "clean": model.Post.SAFETY_SAFE,
-        "suggestive": model.Post.SAFETY_SKETCHY,
+        "safe": model.Post.SAFETY_SAFE,
+        "sketchy": model.Post.SAFETY_SKETCHY,
         "questionable": model.Post.SAFETY_SKETCHY,
-        "mature": model.Post.SAFETY_UNSAFE,
+        "unsafe": model.Post.SAFETY_UNSAFE,
     }
     return search_util.enum_transformer(available_values, value)
 
