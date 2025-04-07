@@ -2,6 +2,7 @@
     <div class='messages'></div>
     <header>
         <h1><%- ctx.name %></h1>
+        <h3>The best in feral furry art and more!</h3>
     </header>
     <% if (ctx.canListPosts) { %>
         <form class='horizontal'>
