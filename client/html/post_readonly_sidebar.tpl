@@ -54,12 +54,12 @@
             </section>
         <% } %>
 
-        <section class='search'>
-            Search on
-            <a href='https://saucenao.com/search.php?url=<%- encodeURIComponent(ctx.post.fullContentUrl) %>'>SauceNao</a> &middot;
-            <a href='http://iqdb.org/?url=<%- encodeURIComponent(ctx.post.fullContentUrl) %>'>IQDB</a> &middot;
-            <a href='https://danbooru.donmai.us/posts?tags=md5:<%- ctx.post.checksumMD5 %>'>Danbooru</a>
-        </section>
+<section class='search'>
+    Search on
+    <a href='https://saucenao.com/search.php?url=<%- encodeURIComponent(ctx.post.fullContentUrl) %>' target="_blank" rel="noopener noreferrer">SauceNao</a> &middot;
+    <a href='http://iqdb.org/?url=<%- encodeURIComponent(ctx.post.fullContentUrl) %>' target="_blank" rel="noopener noreferrer">IQDB</a> &middot;
+    <a href='https://danbooru.donmai.us/posts?tags=md5:<%- ctx.post.checksumMD5 %>' target="_blank" rel="noopener noreferrer">Danbooru</a>
+</section>
 
         <section class='social'>
             <div class='score-container'></div>
