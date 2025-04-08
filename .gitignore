@@ -13,3 +13,4 @@ server/**/lib/
 server/**/bin/
 server/**/pyvenv.cfg
 __pycache__/
+docker-compose.yml
