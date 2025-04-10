@@ -49,7 +49,7 @@
             <section class='source'>
                 Source: <% for (let i = 0; i < ctx.post.sourceSplit.length; i++) { %>
                     <% if (i != 0) { %>&middot;<% } %>
-                    <a href='<%- ctx.post.sourceSplit[i] %>' title='<%- ctx.post.sourceSplit[i] %>'><%- ctx.extractRootDomain(ctx.post.sourceSplit[i]) %></a>
+                    <a href='<%- ctx.post.sourceSplit[i] %>' target="_blank" title='<%- ctx.post.sourceSplit[i] %>'><%- ctx.extractRootDomain(ctx.post.sourceSplit[i]) %></a>
                 <% } %>
             </section>
         <% } %>
@@ -58,7 +58,7 @@
     Search on
     <a href='https://saucenao.com/search.php?url=<%- encodeURIComponent(ctx.post.fullContentUrl) %>' target="_blank" rel="noopener noreferrer">SauceNao</a> &middot;
     <a href='http://iqdb.org/?url=<%- encodeURIComponent(ctx.post.fullContentUrl) %>' target="_blank" rel="noopener noreferrer">IQDB</a> &middot;
-    <a href='https://danbooru.donmai.us/posts?tags=md5:<%- ctx.post.checksumMD5 %>' target="_blank" rel="noopener noreferrer">Danbooru</a>
+    <a href='https://e621.net/posts?tags=md5:<%- ctx.post.checksumMD5 %>' target="_blank" rel="noopener noreferrer">e621</a>
 </section>
 
         <section class='social'>
