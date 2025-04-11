@@ -4,7 +4,7 @@
     <meta charset='utf-8'/>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <meta name='theme-color' content='#24aadd'/>
-    <meta name='apple-mobile-web-app-capable' content='yes'/>
+    <meta name='mobile-web-app-capable' content='yes'/>
     <meta name='apple-mobile-web-app-status-bar-style' content='black'/>
     <meta name='msapplication-TileColor' content='#ffffff'/>
     <meta name="msapplication-TileImage" content="/img/mstile-150x150.png">
@@ -22,10 +22,21 @@
     <link rel='apple-touch-startup-image' href='img/apple-touch-startup-image-1668x2224.png' media='(min-device-width: 834px) and (max-device-width: 834px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: portrait)'/>
     <link rel='apple-touch-startup-image' href='img/apple-touch-startup-image-2048x2732.png' media='(min-device-width: 1024px) and (max-device-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: portrait)'/>
     <link rel='manifest' href='manifest.json'/>
+    <!-- GLightbox CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
 </head>
 <body>
     <div id='top-navigation-holder'></div>
     <div id='content-holder'></div>
+    <div id="age-check-overlay" style="display: none;">
+        <div class="age-check-content">
+            <h1>WildPa.ws</h1>
+            <p>WildPaws contains illustrated furry artwork of the adult nature and is not appropriate to those under 18 or if it's illegal in your region.</p>
+            <h2>Are you 18 or older?</h2>
+            <button id="age-yes">Yes, I'm 18+</button>
+            <button id="age-no">No</button>
+        </div>
+    </div>
     <script type='text/javascript' src='js/vendor.min.js'></script>
     <script type='text/javascript' src='js/app.min.js'></script>
 </body>

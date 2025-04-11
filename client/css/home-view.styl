@@ -65,3 +65,39 @@
 
     .thumbnail
         margin-right: 0.4em
+
+#age-check-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  backdrop-filter: blur(8px);         /* 💡 This blurs the background */
+  background-color: rgba(23, 12, 74, 0.6); /* Dark semi-transparent layer */
+  color: white;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transition: opacity 0.5s ease;     /* Fade transition */
+  pointer-events: auto;
+}
+
+#age-check-overlay.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.age-check-content {
+  text-align: center;
+  background: rgba(34, 34, 34, 0.9);
+  padding: 2em;
+  border-radius: 1em;
+  box-shadow: 0 0 1em #000;
+}
+
+.age-check-content button {
+  margin: 0.5em;
+  padding: 0.5em 1em;
+  font-size: 1em;
+  cursor: pointer;
+}
