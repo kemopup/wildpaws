@@ -24,6 +24,9 @@ class PostMainView {
         const postContainerNode = sourceNode.querySelector(".post-container");
         const sidebarNode = sourceNode.querySelector(".sidebar");
         views.replaceContent(this._hostNode, sourceNode);
+        if (typeof window.setupLightbox === "function") {
+            window.setupLightbox();
+        }
         views.syncScrollPosition();
 
         const topNavigationNode =
@@ -45,7 +48,9 @@ class PostMainView {
                 ];
             }
         );
-
+        if (typeof window.setupLightbox === "function") {
+        window.setupLightbox();
+        }
         this._postNotesOverlayControl = new PostNotesOverlayControl(
             postContainerNode.querySelector(".post-overlay"),
             ctx.post

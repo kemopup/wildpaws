@@ -39,5 +39,14 @@
     </div>
     <script type='text/javascript' src='js/vendor.min.js'></script>
     <script type='text/javascript' src='js/app.min.js'></script>
+    <script type='text/javascript' src='https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js'></script>
+    <script>
+        document.addEventListener("click", (e) => {
+        if (e.target.closest(".glightbox")) {
+          console.log("GLightbox click target: ", e.target);
+        }
+    });
+</script>
+
 </body>
 </html>

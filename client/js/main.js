@@ -1,6 +1,19 @@
 "use strict";
 
 const config = require("./config.js");
+window.lightboxInstance = null;
+
+window.setupLightbox = function () {
+  if (window.GLightbox) {
+    if (window.lightboxInstance) {
+      window.lightboxInstance.destroy();
+    }
+    window.lightboxInstance = window.GLightbox({ selector: '.glightbox' });
+    console.log("📸 Lightbox (re)initialized");
+  } else {
+    console.warn("⚠️ GLightbox is not available");
+  }
+};
 
 if (config.environment == "development") {
     var ws = new WebSocket("ws://" + location.hostname + ":8080");
@@ -14,7 +27,6 @@ if (config.environment == "development") {
         }
     });
 }
-
 require("./util/polyfill.js");
 const misc = require("./util/misc.js");
 const views = require("./util/views.js");
@@ -41,7 +53,18 @@ const tags = require("./tags.js");
 const pools = require("./pools.js");
 const api = require("./api.js");
 const settings = require("./models/settings.js");
+window.addEventListener('DOMContentLoaded', () => {
+    console.log("🌟 DOM loaded");
 
+    if (typeof GLightbox !== 'undefined') {
+        const lightbox = GLightbox({
+            selector: '.glightbox',
+        });
+        console.log("📸 GLightbox initialized");
+    } else {
+        console.warn("⚠️ GLightbox is not available");
+    }
+});
 Promise.resolve()
     .then(() => api.fetchConfig())
     .then(

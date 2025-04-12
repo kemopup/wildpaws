@@ -27,7 +27,7 @@ window.addEventListener("DOMContentLoaded", function () {
     });
 
     document.getElementById("age-no").addEventListener("click", function () {
-      window.location.href = "https://www.google.com"; // or any other safe exit
+      window.location.href = "https://www.netflix.com/title/81133419"; // or any other safe exit
     });
   }
 });
