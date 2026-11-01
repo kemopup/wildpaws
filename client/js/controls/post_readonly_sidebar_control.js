@@ -28,6 +28,8 @@ class PostReadonlySidebarControl extends events.EventTarget {
                 canListPosts: api.hasPrivilege("posts:list"),
                 canEditPosts: api.hasPrivilege("posts:edit"),
                 canViewTags: api.hasPrivilege("tags:view"),
+                canSetWallpaper: api.isLoggedIn() && this._post.type === "image" &&
+                    api.hasPrivilege("users:edit:self:wallpaper"),
                 escapeTagName: uri.escapeTagName,
                 extractRootDomain: uri.extractRootDomain,
                 getPrettyName: misc.getPrettyName,
@@ -38,6 +40,34 @@ class PostReadonlySidebarControl extends events.EventTarget {
         this._installScore();
         this._installFitButtons();
         this._syncFitButton();
+        const wallpaperLink = this._hostNode.querySelector(".set-site-wallpaper");
+        if (wallpaperLink) {
+            wallpaperLink.addEventListener("click", (e) => {
+                e.preventDefault();
+                if (wallpaperLink.getAttribute("aria-disabled") === "true") {
+                    return;
+                }
+                this.dispatchEvent(new CustomEvent("wallpaper", {
+                    detail: { post: this._post },
+                }));
+            });
+        }
+    }
+
+    setWallpaperPending(pending) {
+        const section = this._hostNode.querySelector(".site-wallpaper");
+        views.clearMessages(section);
+        section.querySelector("a").setAttribute("aria-disabled", String(pending));
+    }
+
+    showWallpaperResult(message, error) {
+        const section = this._hostNode.querySelector(".site-wallpaper");
+        section.querySelector("a").setAttribute("aria-disabled", "false");
+        if (error) {
+            views.showError(section, message);
+        } else {
+            views.showSuccess(section, message);
+        }
     }
 
     get _scoreContainerNode() {

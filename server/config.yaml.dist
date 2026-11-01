@@ -81,6 +81,7 @@ privileges:
     'users:edit:self:pass':         regular
     'users:edit:self:email':        regular
     'users:edit:self:avatar':       regular
+    'users:edit:self:wallpaper':    regular
     'users:edit:self:rank':         moderator # one can't promote themselves or anyone to upper rank than their own.
     'users:delete:any':             administrator
     'users:delete:self':            regular
@@ -100,23 +101,24 @@ privileges:
     'posts:reverse_search':         regular
     'posts:view':                   anonymous
     'posts:view:featured':          anonymous
-    'posts:edit:content':           power
-    'posts:edit:flags':             regular
+    'posts:edit:content':           moderator
+    'posts:edit:flags':             moderator
     'posts:edit:notes':             regular
-    'posts:edit:relations':         regular
-    'posts:edit:safety':            power
-    'posts:edit:source':            regular
-    'posts:edit:description':       regular
+    'posts:edit:relations':         moderator
+    'posts:edit:safety':            moderator
+    'posts:edit:source':            moderator
+    'posts:edit:description':       moderator
+    'posts:edit:own:description':   regular
     'posts:edit:tags':              regular
-    'posts:edit:thumbnail':         power
+    'posts:edit:thumbnail':         moderator
     'posts:feature':                moderator
     'posts:delete':                 moderator
     'posts:score':                  regular
     'posts:merge':                  moderator
     'posts:favorite':               regular
     'posts:bulk-edit:tags':         power
-    'posts:bulk-edit:safety':       power
-    'posts:bulk-edit:delete':       power
+    'posts:bulk-edit:safety':       moderator
+    'posts:bulk-edit:delete':       moderator
 
     'tags:create':                  regular
     'tags:edit:names':              power

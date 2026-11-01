@@ -47,7 +47,7 @@
                         <%= ctx.makeRadio({
                             name: 'safety-' + ctx.uploadable.key,
                             value: safety,
-                            text: safety[0].toUpperCase() + safety.substr(1),
+                            text: ctx.formatSafetyLabel(safety),
                             selectedValue: ctx.uploadable.safety,
                         }) %>
                     <% } %>
@@ -68,6 +68,11 @@
             </div>
 
             <div class='messages'></div>
+
+            <div class='post-tags-input'>
+                <label for='upload-tags-<%- ctx.uploadable.key %>'>Tags (separate with spaces)</label>
+                <input id='upload-tags-<%- ctx.uploadable.key %>' type='text' name='tags' value='<%- ctx.uploadable.manualTags %>' placeholder='wolf portrait blue_eyes' autocomplete='off'/>
+            </div>
 
             <div class='post-description-input'>
                 <label for='upload-description-<%- ctx.uploadable.key %>'>Description (supports Markdown)</label>

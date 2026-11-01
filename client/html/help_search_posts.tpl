@@ -196,7 +196,7 @@
         </tr>
         <tr>
             <td><code>safety</code></td>
-            <td>having given safety</td>
+            <td>having given safety: <code>safety:arf</code>, <code>safety:merr?</code>, or <code>safety:huff!</code>. The original values <code>safe</code>, <code>sketchy</code>, and <code>unsafe</code> also work.</td>
         </tr>
         <tr>
             <td><code>rating</code></td>

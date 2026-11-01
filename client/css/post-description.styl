@@ -10,6 +10,39 @@
     h2
         margin-top: 0
 
+    .description-heading
+        display: flex
+        align-items: baseline
+        justify-content: space-between
+        flex-wrap: wrap
+        gap: 0.5em 1em
+        margin-bottom: 1em
+
+        h2
+            margin-bottom: 0
+
+        .edit-description
+            padding: 0
+            border: 0
+            background: none
+            color: $main-color
+            display: inline-flex
+            align-items: center
+            justify-content: center
+            min-width: 2em
+            min-height: 2em
+            border-radius: 0.25em
+            font-size: 1em
+
+            &:hover, &:focus
+                background: rgba(128, 128, 128, 0.15)
+
+    [hidden]
+        display: none !important
+
+    form
+        width: 100%
+
     label
         display: block
         margin-bottom: 0.5em
@@ -64,14 +97,17 @@
 .darktheme .post-view .post-description
     background: $window-color-darktheme
 
-#post-upload .post-description-input
+#post-upload .post-description-input,
+#post-upload .post-tags-input
     margin: 1em 0
 
     label
         display: block
         margin-bottom: 0.4em
 
-    textarea
+    textarea, input
         width: 100%
         box-sizing: border-box
+
+    textarea
         resize: vertical

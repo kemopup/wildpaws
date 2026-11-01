@@ -34,7 +34,7 @@
         <% if (ctx.enableSafety) { %>
             <section class='safety'>
                 <i class='fa fa-circle safety-<%- ctx.post.safety %>'></i><!--
-                --><%- ctx.post.safety[0].toUpperCase() + ctx.post.safety.slice(1) %>
+                --><%- ctx.formatSafetyLabel(ctx.post.safety) %>
             </section>
         <% } %>
 
@@ -44,6 +44,13 @@
             <a href class='fit-height'>height</a> &middot;
             <a href class='fit-both'>both</a>
         </section>
+
+        <% if (ctx.canSetWallpaper) { %>
+            <section class='site-wallpaper'>
+                <a href class='set-site-wallpaper'><i class='fa fa-picture-o' aria-hidden='true'></i> Set as site wallpaper</a>
+                <div class='messages' role='status'></div>
+            </section>
+        <% } %>
 
         <% if (ctx.post.source) { %>
             <section class='source'>

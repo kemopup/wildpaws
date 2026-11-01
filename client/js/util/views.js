@@ -6,6 +6,7 @@ const templates = require("../templates.js");
 const domParser = new DOMParser();
 const misc = require("./misc.js");
 const uri = require("./uri.js");
+const { formatSafetyLabel } = require("./safety.js");
 
 function _imbueId(options) {
     if (!options.id) {
@@ -452,6 +453,7 @@ function getTemplate(templatePath) {
             makeRelativeTime: makeRelativeTime,
             makeFileSize: makeFileSize,
             makeMarkdown: makeMarkdown,
+            formatSafetyLabel: formatSafetyLabel,
             makeThumbnail: makeThumbnail,
             makePoolThumbnails: makePoolThumbnails,
             makeRadio: makeRadio,

@@ -12,8 +12,9 @@ def inject_config(config_injector):
         {
             "privileges": {
                 "posts:create:identified": model.User.RANK_REGULAR,
-                "posts:edit:description": model.User.RANK_REGULAR,
-                "posts:edit:source": model.User.RANK_REGULAR,
+                "posts:edit:description": model.User.RANK_MODERATOR,
+                "posts:edit:own:description": model.User.RANK_REGULAR,
+                "posts:edit:source": model.User.RANK_MODERATOR,
                 "posts:view": model.User.RANK_ANONYMOUS,
                 "uploads:use_downloader": model.User.RANK_REGULAR,
             },
@@ -33,7 +34,9 @@ def inject_config(config_injector):
 def test_description_survives_database_round_trip(
     context_factory, post_factory, user_factory, description
 ):
+    uploader = user_factory(rank=model.User.RANK_REGULAR)
     post = post_factory()
+    post.user = uploader
     db.session.add(post)
     db.session.flush()
     post_id = post.post_id
@@ -45,7 +48,7 @@ def test_description_survives_database_round_trip(
                     "description": description,
                     "fields": ["id", "version", "description"],
                 },
-                user=user_factory(rank=model.User.RANK_REGULAR),
+                user=uploader,
             ),
             {"post_id": post_id},
         )
@@ -68,7 +71,9 @@ def test_description_survives_database_round_trip(
 def test_description_can_be_cleared(
     context_factory, post_factory, user_factory, description
 ):
+    uploader = user_factory(rank=model.User.RANK_REGULAR)
     post = post_factory()
+    post.user = uploader
     post.description = "Old description"
     db.session.add(post)
     db.session.flush()
@@ -80,7 +85,7 @@ def test_description_can_be_cleared(
                     "description": description,
                     "fields": ["description"],
                 },
-                user=user_factory(rank=model.User.RANK_REGULAR),
+                user=uploader,
             ),
             {"post_id": post.post_id},
         )
@@ -103,7 +108,7 @@ def test_other_edits_preserve_description(
                     "source": "https://example.com",
                     "fields": ["description"],
                 },
-                user=user_factory(rank=model.User.RANK_REGULAR),
+                user=user_factory(rank=model.User.RANK_MODERATOR),
             ),
             {"post_id": post.post_id},
         )

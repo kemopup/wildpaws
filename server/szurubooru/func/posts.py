@@ -86,6 +86,17 @@ SAFETY_MAP = {
     model.Post.SAFETY_UNSAFE: "unsafe",
 }
 
+SAFETY_LABELS = {
+    model.Post.SAFETY_SAFE: "Arf",
+    model.Post.SAFETY_SKETCHY: "Merr?",
+    model.Post.SAFETY_UNSAFE: "Huff!",
+}
+
+SAFETY_INPUT_MAP = {
+    **util.flip(SAFETY_MAP),
+    **{label.lower(): value for value, label in SAFETY_LABELS.items()},
+}
+
 TYPE_MAP = {
     model.Post.TYPE_IMAGE: "image",
     model.Post.TYPE_ANIMATION: "animation",
@@ -179,6 +190,7 @@ class PostSerializer(serialization.BaseSerializer):
             "creationTime": self.serialize_creation_time,
             "lastEditTime": self.serialize_last_edit_time,
             "safety": self.serialize_safety,
+            "safetyLabel": self.serialize_safety_label,
             "source": self.serialize_source,
             "description": self.serialize_description,
             "type": self.serialize_type,
@@ -225,6 +237,9 @@ class PostSerializer(serialization.BaseSerializer):
 
     def serialize_safety(self) -> Any:
         return SAFETY_MAP[self.post.safety]
+
+    def serialize_safety_label(self) -> Any:
+        return SAFETY_LABELS[self.post.safety]
 
     def serialize_source(self) -> Any:
         return self.post.source
@@ -442,10 +457,11 @@ def create_post(
 
 def update_post_safety(post: model.Post, safety: str) -> None:
     assert post
-    safety = util.flip(SAFETY_MAP).get(safety, None)
+    safety = SAFETY_INPUT_MAP.get(safety.lower(), None)
     if not safety:
         raise InvalidPostSafetyError(
-            "Safety can be either of %r." % list(SAFETY_MAP.values())
+            "Safety can be either of %r."
+            % (list(SAFETY_MAP.values()) + list(SAFETY_LABELS.values()))
         )
     post.safety = safety
 

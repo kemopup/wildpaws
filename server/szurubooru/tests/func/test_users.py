@@ -161,6 +161,7 @@ def test_serialize_user(user_factory):
             "commentCount": 0,
             "favoritePostCount": 0,
             "uploadedPostCount": 0,
+            "wallpaper": False,
         }
 
 

@@ -337,6 +337,19 @@ class Post extends events.EventTarget {
             );
     }
 
+    saveDescription(description) {
+        return api.put(uri.formatApiLink("post", this.id), {
+            version: this._version,
+            description: description,
+        }).then((response) => {
+            // Keep pending tag, note, and other sidebar edits untouched.
+            for (const target of [this, this._orig]) {
+                target._version = response.version;
+                target._description = response.description || "";
+            }
+        });
+    }
+
     feature() {
         return api
             .post(uri.formatApiLink("featured-post"), { id: this._id })

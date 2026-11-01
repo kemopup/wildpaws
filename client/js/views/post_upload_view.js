@@ -3,7 +3,9 @@
 const events = require("../events.js");
 const api = require("../api.js");
 const views = require("../util/views.js");
+const misc = require("../util/misc.js");
 const FileDropperControl = require("../controls/file_dropper_control.js");
+const TagAutoCompleteControl = require("../controls/tag_auto_complete_control.js");
 
 const template = views.getTemplate("post-upload");
 const rowTemplate = views.getTemplate("post-upload-row");
@@ -35,6 +37,7 @@ class Uploadable extends events.EventTarget {
         this.safety = "safe";
         this.flags = [];
         this.tags = [];
+        this.manualTags = "";
         this.relations = [];
         this.description = "";
         this.anonymous = !api.isLoggedIn();
@@ -304,6 +307,7 @@ class PostUploadView extends events.EventTarget {
         uploadable.description = rowNode.querySelector(
             "textarea[name=description]"
         ).value;
+        uploadable.manualTags = rowNode.querySelector("input[name=tags]").value;
 
         const safetyNode = rowNode.querySelector(".safety input:checked");
         if (safetyNode) {
@@ -317,7 +321,7 @@ class PostUploadView extends events.EventTarget {
             uploadable.anonymous = true;
         }
 
-        uploadable.tags = [];
+        uploadable.tags = misc.splitByWhitespace(uploadable.manualTags);
         uploadable.relations = [];
         for (let [i, lookalike] of uploadable.lookalikes.entries()) {
             let lookalikeNode = rowNode.querySelector(
@@ -332,6 +336,16 @@ class PostUploadView extends events.EventTarget {
                 uploadable.relations.push(lookalike.post.id);
             }
         }
+
+        const seenTags = new Set();
+        uploadable.tags = uploadable.tags.filter((tagName) => {
+            const key = tagName.toLowerCase();
+            if (seenTags.has(key)) {
+                return false;
+            }
+            seenTags.add(key);
+            return true;
+        });
     }
 
     _evtRemoveClick(e, uploadable) {
@@ -397,6 +411,27 @@ class PostUploadView extends events.EventTarget {
 
         uploadable.rowNode = rowNode;
 
+        const tagsInput = rowNode.querySelector("input[name=tags]");
+        tagsInput.disabled = this._uploading;
+        const syncTags = () => {
+            uploadable.manualTags = tagsInput.value;
+            this._emit("change");
+        };
+        tagsInput.addEventListener("input", syncTags);
+        const tagAutoComplete = new TagAutoCompleteControl(tagsInput, {
+            confirm: (tag) => {
+                tagAutoComplete.replaceSelectedText(tag.names[0], true);
+                syncTags();
+            },
+            isTaggedWith: (name) => misc.splitByWhitespace(tagsInput.value)
+                .some((tag) => tag.toLowerCase() === name.toLowerCase()),
+        });
+        tagsInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+            }
+        });
+
         const descriptionInput = rowNode.querySelector(
             "textarea[name=description]"
         );
@@ -404,7 +439,7 @@ class PostUploadView extends events.EventTarget {
         descriptionInput.addEventListener(
             "input", (e) => {
                 uploadable.description = e.target.value;
-                this.dispatchEvent(new CustomEvent("change"));
+                this._emit("change");
             }
         );
 

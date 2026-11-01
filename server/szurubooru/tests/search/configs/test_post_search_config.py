@@ -437,6 +437,12 @@ def test_filter_by_type(
         ("safety:sketchy", [2]),
         ("safety:questionable", [2]),
         ("safety:unsafe", [3]),
+        ("safety:Arf", [1]),
+        ("safety:merr?", [2]),
+        ("safety:Huff!", [3]),
+        ("rating:arf", [1]),
+        ("rating:MERR?", [2]),
+        ("rating:HUFF!", [3]),
     ],
 )
 def test_filter_by_safety(

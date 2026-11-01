@@ -11,11 +11,13 @@ const PostList = require("../models/post_list.js");
 const PostMainView = require("../views/post_main_view.js");
 const BasePostController = require("./base_post_controller.js");
 const EmptyView = require("../views/empty_view.js");
+const siteWallpaper = require("../site_wallpaper.js");
 const PoolNavigatorListControl = require("../controls/pool_navigator_list_control.js");
 
 class PostMainController extends BasePostController {
     constructor(ctx, editMode) {
         super(ctx);
+        this._dirtyForms = new Set();
 
         let parameters = ctx.parameters;
         Promise.all([
@@ -67,7 +69,8 @@ class PostMainController extends BasePostController {
                     canEditPosts: api.hasPrivilege("posts:edit"),
                     canEditPostDescription: api.hasPrivilege(
                         "posts:edit:description"
-                    ),
+                    ) || (post.user && api.isLoggedIn(post.user) &&
+                        api.hasPrivilege("posts:edit:own:description")),
                     canDeletePosts: api.hasPrivilege("posts:delete"),
                     canFeaturePosts: api.hasPrivilege("posts:feature"),
                     canListComments: api.hasPrivilege("comments:list"),
@@ -78,6 +81,9 @@ class PostMainController extends BasePostController {
                 });
 
                 if (this._view.sidebarControl) {
+                    this._view.sidebarControl.addEventListener("wallpaper", (e) =>
+                        this._evtSetWallpaper(e)
+                    );
                     this._view.sidebarControl.addEventListener(
                         "favorite",
                         (e) => this._evtFavoritePost(e)
@@ -110,6 +116,13 @@ class PostMainController extends BasePostController {
                         this._evtMergePost(e)
                     );
                 }
+
+                this._view.descriptionControl.addEventListener("change", (e) => {
+                    this._setFormDirty("description", e.detail.dirty);
+                });
+                this._view.descriptionControl.addEventListener("submit", (e) =>
+                    this._evtUpdateDescription(e)
+                );
 
                 if (this._view.commentControl) {
                     this._view.commentControl.addEventListener("change", (e) =>
@@ -146,6 +159,15 @@ class PostMainController extends BasePostController {
         const browsingSettings = settings.get();
         browsingSettings.fitMode = e.detail.mode;
         settings.save(browsingSettings);
+    }
+
+    _evtSetWallpaper(e) {
+        const control = this._view.sidebarControl;
+        control.setWallpaperPending(true);
+        siteWallpaper.setPost(e.detail.post.id).then(
+            () => control.showWallpaperResult("Site wallpaper updated."),
+            (error) => control.showWallpaperResult(error.message, true)
+        );
     }
 
     _evtFeaturePost(e) {
@@ -205,14 +227,11 @@ class PostMainController extends BasePostController {
         if (e.detail.source !== undefined && e.detail.source !== null) {
             post.source = e.detail.source;
         }
-        if (e.detail.description !== undefined) {
-            post.description = e.detail.description;
-        }
         post.save().then(
             () => {
                 this._view.sidebarControl.showSuccess("Post saved.");
                 this._view.sidebarControl.enableForm();
-                misc.disableExitConfirmation();
+                this._setFormDirty("post", false);
             },
             (error) => {
                 this._view.sidebarControl.showError(error.message);
@@ -221,12 +240,41 @@ class PostMainController extends BasePostController {
         );
     }
 
+    _evtUpdateDescription(e) {
+        const control = this._view.descriptionControl;
+        control.disableForm();
+        this._post.saveDescription(e.detail.description).then(
+            () => {
+                control.enableForm();
+                control.exitEditMode();
+                control.showSuccess("Description saved.");
+            },
+            (error) => {
+                control.enableForm();
+                control.showError(error.message);
+            }
+        );
+    }
+
+    _setFormDirty(name, dirty) {
+        if (dirty) {
+            this._dirtyForms.add(name);
+        } else {
+            this._dirtyForms.delete(name);
+        }
+        if (this._dirtyForms.size) {
+            misc.enableExitConfirmation();
+        } else {
+            misc.disableExitConfirmation();
+        }
+    }
+
     _evtPostChange(e) {
-        misc.enableExitConfirmation();
+        this._setFormDirty("post", true);
     }
 
     _evtCommentChange(e) {
-        misc.enableExitConfirmation();
+        this._setFormDirty("comment", true);
     }
 
     _evtCreateComment(e) {
@@ -238,7 +286,7 @@ class PostMainController extends BasePostController {
                 this._post.comments.add(comment);
                 this._view.commentControl.exitEditMode();
                 this._view.commentControl.enableForm();
-                misc.disableExitConfirmation();
+                this._setFormDirty("comment", false);
             },
             (error) => {
                 this._view.commentControl.showError(error.message);

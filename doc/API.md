@@ -789,7 +789,7 @@ data.
     | `fav-time`           | alias of `fav-date`                                                                                                                     |
     | `feature-date`       | featured at given date                                                                                                                  |
     | `feature-time`       | alias of `feature-time`                                                                                                                 |
-    | `safety`             | having given safety. `<value>` can be either `safe`, `sketchy` or `unsafe`.                                         |
+    | `safety`             | having given safety. `<value>` can be `safe` / `Arf`, `sketchy` / `Merr?`, or `unsafe` / `Huff!` (case-insensitive).                                         |
     | `rating`             | alias of `safety`                                                                                                                       |
 
     **Sort style tokens**
@@ -1887,7 +1887,8 @@ data.
         "password":    <user-password>, // optional
         "email":       <email>,         // optional
         "rank":        <rank>,          // optional
-        "avatarStyle": <avatar-style>   // optional
+        "avatarStyle": <avatar-style>,  // optional
+        "wallpaperPostId": <post-id>    // optional; null restores the default
     }
     ```
 
@@ -1921,6 +1922,14 @@ data.
     file - see [file uploads](#file-uploads) for details. All fields except the
     [`version`](#versioning) are optional - update concerns only provided
     fields.
+
+    `wallpaperPostId` selects an existing static image post as the authenticated
+    user's site wallpaper. Only the account owner can change this preference,
+    including when the requester is an administrator. Selection requires
+    `users:edit:self:wallpaper` (regular by default) and `posts:view`.
+    Animation, video and Flash posts cannot be selected. Send `null` to restore
+    the default wallpaper; omit the field to preserve the current preference.
+    Deleting the selected post automatically clears the preference.
 
 ## Getting user
 - **Request**
@@ -2193,6 +2202,7 @@ data.
             "tagNameRegex": <tag-name-regex>,
             "tagCategoryNameRegex": <tag-category-name-regex>,
             "defaultUserRank": <default-rank>,
+            "safetyLabels": { "safe": "Arf", "sketchy": "Merr?", "unsafe": "Huff!" },
             "privileges": <privileges>
         }
     }
@@ -2203,9 +2213,9 @@ data.
     Retrieves simple statistics. `<featured-post>` is null if there is no
     featured post yet. `<server-time>` is pretty much the same as the `Date`
     HTTP field, only formatted in a manner consistent with other dates. Values
-    in `config` key are taken directly from the server config, with the
-    exception of privilege array keys being converted to lower camel case to
-    match the API convention.
+    in `config` key are taken directly from the server config, except for the
+    site's safety label mapping and privilege array keys being converted to
+    lower camel case to match the API convention.
 
 ## Uploading temporary file
 
@@ -2261,7 +2271,8 @@ A single user.
     "uploadedPostCount": <uploaded-post-count>,
     "likedPostCount":    <liked-post-count>,
     "dislikedPostCount": <disliked-post-count>,
-    "favoritePostCount": <favorite-post-count>
+    "favoritePostCount": <favorite-post-count>,
+    "wallpaper":         <wallpaper>
 }
 ```
 
@@ -2301,6 +2312,11 @@ A single user.
   the request is authenticated by the same user. If it's unavailable, the
   server returns `false`.
 - `<favorite-post-count>`: number of favorited posts.
+- `<wallpaper>`: the account's site wallpaper, visible only to the account
+  owner. Returns `false` to other users and `null` when the default should be
+  used. A selection is `{ "postId": <post-id>, "contentUrl": <content-url>,
+  "safety": <safety>, "safetyLabel": <safety-label> }`. It returns `null` if the selected post is no longer a
+  static image or the owner no longer has `posts:view` permission.
 
 ## Micro user
 **Description**
@@ -2426,6 +2442,7 @@ One file together with its metadata posted to the site.
     "creationTime":       <creation-time>,
     "lastEditTime":       <last-edit-time>,
     "safety":             <safety>,
+    "safetyLabel":        <safety-label>,
     "source":             <source>,
     "description":        <description>,
     "type":               <type>,
@@ -2480,12 +2497,26 @@ One file together with its metadata posted to the site.
     - `"sketchy"`
     - `"unsafe"`
 
+    These canonical API values and stored database values remain unchanged.
+    Create, update, and bulk safety requests also accept the labels `Arf`,
+    `Merr?`, and `Huff!`, case-insensitively. Search supports the same aliases
+    for `safety:` and `rating:` queries, while retaining existing values and
+    the `questionable` search alias.
+
+- `<safety-label>`: the UI rating label: `Arf` for `safe`, `Merr?` for
+  `sketchy`, and `Huff!` for `unsafe`. `/info` exposes this mapping as
+  `config.safetyLabels`, so API clients can display the same labels without
+  changing the canonical safety values. No database migration is needed.
+
 - `<source>`: where the post was grabbed form, supplied by the user.
 - `<description>`: optional long-form Markdown source. Existing posts return an
   empty string. Send an empty string to clear it; omit it to preserve the current
-  description. Editing requires `posts:edit:description` (regular users by
-  default). The client sanitizes rendered Markdown; the API stores the original
-  text.
+  description. Uploaders can edit their own descriptions through
+  `posts:edit:own:description` (regular users by default). Editing another
+  uploader's description requires `posts:edit:description` (moderator by
+  default). Anonymous posts have no owner. Other regular-user post edits are
+  limited to tags and image notes. The client sanitizes rendered Markdown; the
+  API stores the original text.
 - `<type>`: the type of the post.
 
     Available values:

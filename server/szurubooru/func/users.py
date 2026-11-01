@@ -36,6 +36,10 @@ class InvalidAvatarError(errors.ValidationError):
     pass
 
 
+class InvalidWallpaperError(errors.ValidationError):
+    pass
+
+
 def get_avatar_path(user_name: str) -> str:
     return "avatars/" + user_name.lower() + ".png"
 
@@ -115,6 +119,7 @@ class UserSerializer(serialization.BaseSerializer):
             "likedPostCount": self.serialize_liked_post_count,
             "dislikedPostCount": self.serialize_disliked_post_count,
             "email": self.serialize_email,
+            "wallpaper": self.serialize_wallpaper,
         }
 
     def serialize_name(self) -> Any:
@@ -156,6 +161,28 @@ class UserSerializer(serialization.BaseSerializer):
     def serialize_email(self) -> Any:
         return get_email(self.user, self.auth_user, self.force_show_email)
 
+    def serialize_wallpaper(self) -> Any:
+        if (
+            self.auth_user.user_id is None
+            or self.auth_user.user_id != self.user.user_id
+        ):
+            return False
+        post = self.user.wallpaper_post
+        if (
+            post is None
+            or post.type != model.Post.TYPE_IMAGE
+            or not auth.has_privilege(self.auth_user, "posts:view")
+        ):
+            return None
+        from szurubooru.func import posts
+
+        return {
+            "postId": post.post_id,
+            "contentUrl": posts.get_post_content_url(post),
+            "safety": post.safety,
+            "safetyLabel": posts.SAFETY_LABELS[post.safety],
+        }
+
 
 def serialize_user(
     user: Optional[model.User],
@@ -178,6 +205,23 @@ def serialize_micro_user(
 
 def get_user_count() -> int:
     return db.session.query(model.User).count()
+
+
+def update_user_wallpaper(
+    user: model.User, post_id: Optional[int], auth_user: model.User
+) -> None:
+    if post_id is None:
+        user.wallpaper_post = None
+        return
+    auth.verify_privilege(auth_user, "posts:view")
+    from szurubooru.func import posts
+
+    post = posts.get_post_by_id(post_id)
+    if post.type != model.Post.TYPE_IMAGE:
+        raise InvalidWallpaperError(
+            "Choose a static image post for your site wallpaper."
+        )
+    user.wallpaper_post = post
 
 
 def try_get_user_by_name(name: str) -> Optional[model.User]:

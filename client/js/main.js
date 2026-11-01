@@ -53,6 +53,7 @@ const tags = require("./tags.js");
 const pools = require("./pools.js");
 const api = require("./api.js");
 const settings = require("./models/settings.js");
+require("./site_wallpaper.js").initialize();
 window.addEventListener('DOMContentLoaded', () => {
     console.log("🌟 DOM loaded");
 

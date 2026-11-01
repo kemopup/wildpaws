@@ -124,6 +124,19 @@ def verify_privilege(user: model.User, privilege_name: str) -> None:
         raise errors.AuthError("Insufficient privileges to do this.")
 
 
+def verify_post_description_privilege(
+    user: model.User, post: model.Post
+) -> None:
+    if has_privilege(user, "posts:edit:description"):
+        return
+    if post.user_id is not None and user.user_id == post.user_id:
+        verify_privilege(user, "posts:edit:own:description")
+        return
+    raise errors.AuthError(
+        "Only the uploader or a moderator can edit this description."
+    )
+
+
 def generate_authentication_token(user: model.User) -> str:
     """Generate nonguessable challenge (e.g. links in password reminder)."""
     assert user

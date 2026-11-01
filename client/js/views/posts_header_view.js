@@ -296,6 +296,7 @@ class PostsHeaderView extends events.EventTarget {
         let browsingSettings = settings.get();
         browsingSettings.listPosts[safety] =
             !browsingSettings.listPosts[safety];
+        e.target.setAttribute("aria-pressed", String(browsingSettings.listPosts[safety]));
         settings.save(browsingSettings, true);
         this.dispatchEvent(
             new CustomEvent("navigate", {

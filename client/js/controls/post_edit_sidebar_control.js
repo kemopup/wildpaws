@@ -4,7 +4,6 @@ const api = require("../api.js");
 const events = require("../events.js");
 const misc = require("../util/misc.js");
 const views = require("../util/views.js");
-const markdown = require("../util/markdown.js");
 const Note = require("../models/note.js");
 const Point = require("../models/point.js");
 const TagInputControl = require("./tag_input_control.js");
@@ -86,34 +85,6 @@ class PostEditSidebarControl extends events.EventTarget {
         );
 
         this._syncExpanderTitles();
-
-        if (this._descriptionInputNode) {
-            const section = this._descriptionInputNode.closest(
-                ".post-description"
-            );
-            const preview = section.querySelector("#post-description-preview");
-            const toggle = section.querySelector(".description-preview-toggle");
-            const updatePreview = () => {
-                preview.innerHTML = markdown.formatMarkdown(
-                    this._descriptionInputNode.value, true
-                );
-            };
-            toggle.addEventListener("click", () => {
-                preview.hidden = !preview.hidden;
-                toggle.setAttribute("aria-expanded", String(!preview.hidden));
-                toggle.textContent = preview.hidden
-                    ? "Show preview" : "Hide preview";
-                if (!preview.hidden) {
-                    updatePreview();
-                }
-            });
-            this._descriptionInputNode.addEventListener("input", () => {
-                this.dispatchEvent(new CustomEvent("change"));
-                if (!preview.hidden) {
-                    updatePreview();
-                }
-            });
-        }
 
         if (this._formNode) {
             this._formNode.addEventListener("submit", (e) =>
@@ -465,9 +436,6 @@ class PostEditSidebarControl extends events.EventTarget {
                     source: this._sourceInputNode
                         ? this._sourceInputNode.value
                         : undefined,
-                    description: this._descriptionInputNode
-                        ? this._descriptionInputNode.value
-                        : undefined,
                 },
             })
         );
@@ -539,10 +507,6 @@ class PostEditSidebarControl extends events.EventTarget {
         return this._formNode.querySelector(".post-source textarea");
     }
 
-    get _descriptionInputNode() {
-        return this._formNode.elements.namedItem("description");
-    }
-
     get _featureLinkNode() {
         return this._formNode.querySelector(".management .feature");
     }
@@ -577,47 +541,22 @@ class PostEditSidebarControl extends events.EventTarget {
 
     enableForm() {
         views.enableForm(this._formNode);
-        this._setDescriptionDisabled(false);
     }
 
     disableForm() {
         views.disableForm(this._formNode);
-        this._setDescriptionDisabled(true);
-    }
-
-    _setDescriptionDisabled(disabled) {
-        for (const node of this._formNode.elements) {
-            if (node.closest(".post-description")) {
-                node.disabled = disabled;
-            }
-        }
     }
 
     clearMessages() {
         views.clearMessages(this._hostNode);
-        if (this._descriptionInputNode) {
-            views.clearMessages(
-                this._descriptionInputNode.closest(".post-description")
-            );
-        }
     }
 
     showSuccess(message) {
         views.showSuccess(this._hostNode, message);
-        if (this._descriptionInputNode) {
-            views.showSuccess(
-                this._descriptionInputNode.closest(".post-description"), message
-            );
-        }
     }
 
     showError(message) {
         views.showError(this._hostNode, message);
-        if (this._descriptionInputNode) {
-            views.showError(
-                this._descriptionInputNode.closest(".post-description"), message
-            );
-        }
     }
 }
 

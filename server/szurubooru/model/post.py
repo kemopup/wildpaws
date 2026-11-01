@@ -225,7 +225,7 @@ class Post(Base):
     mime_type = sa.Column("mime-type", sa.Unicode(32), nullable=False)
 
     # foreign tables
-    user = sa.orm.relationship("User")
+    user = sa.orm.relationship("User", foreign_keys=[user_id])
     tags = sa.orm.relationship("Tag", backref="posts", secondary="post_tag")
     signature = sa.orm.relationship(
         "PostSignature",

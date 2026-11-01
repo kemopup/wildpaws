@@ -13,19 +13,19 @@
                         class: 'safety-safe',
                         value: 'safe',
                         selectedValue: ctx.post.safety,
-                        text: 'Safe'}) %>
+                        text: ctx.formatSafetyLabel('safe')}) %>
                     <%= ctx.makeRadio({
                         name: 'safety',
                         class: 'safety-sketchy',
                         value: 'sketchy',
                         selectedValue: ctx.post.safety,
-                        text: 'Sketchy'}) %>
+                        text: ctx.formatSafetyLabel('sketchy')}) %>
                     <%= ctx.makeRadio({
                         name: 'safety',
                         value: 'unsafe',
                         selectedValue: ctx.post.safety,
                         class: 'safety-unsafe',
-                        text: 'Unsafe'}) %>
+                        text: ctx.formatSafetyLabel('unsafe')}) %>
                 </div>
             </section>
         <% } %>

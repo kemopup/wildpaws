@@ -121,6 +121,8 @@ def get_post(ctx: rest.Context, params: Dict[str, str]) -> rest.Response:
 def update_post(ctx: rest.Context, params: Dict[str, str]) -> rest.Response:
     post = _get_post(params)
     versions.verify_version(post, ctx)
+    if ctx.has_param("description"):
+        auth.verify_post_description_privilege(ctx.user, post)
     versions.bump_version(post)
     if ctx.has_file("content"):
         auth.verify_privilege(ctx.user, "posts:edit:content")
@@ -150,9 +152,9 @@ def update_post(ctx: rest.Context, params: Dict[str, str]) -> rest.Response:
         auth.verify_privilege(ctx.user, "posts:edit:source")
         posts.update_post_source(post, ctx.get_param_as_string("source"))
     elif ctx.has_param("contentUrl"):
+        auth.verify_privilege(ctx.user, "posts:edit:source")
         posts.update_post_source(post, ctx.get_param_as_string("contentUrl"))
     if ctx.has_param("description"):
-        auth.verify_privilege(ctx.user, "posts:edit:description")
         posts.update_post_description(
             post, ctx.get_param_as_string("description")
         )
