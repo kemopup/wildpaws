@@ -14,3 +14,6 @@ server/**/bin/
 server/**/pyvenv.cfg
 __pycache__/
 docker-compose.yml
+
+# Local development credentials
+dev/config.local.yaml

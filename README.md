@@ -29,6 +29,8 @@ scrubbing](https://sjp.pwn.pl/sjp/;2527372). It is pronounced as *shoorubooru*.
 
 ## Installation
 
+For editing and testing on Windows, see [Local development](doc/DEVELOPMENT.md).
+
 It is recommended that you use Docker for deployment.
 [See installation instructions.](doc/INSTALL.md)
 

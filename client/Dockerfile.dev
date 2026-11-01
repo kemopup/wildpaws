@@ -1,0 +1,12 @@
+FROM node:24-bookworm-slim
+WORKDIR /opt/app
+
+COPY package.json package-lock.json ./
+RUN npm ci --no-audit --no-fund
+
+COPY . ./
+RUN mkdir -p public
+
+ENV BASE_URL=/ BUILD_INFO=local-dev
+EXPOSE 8080
+CMD ["node", "build.js", "--watch", "--debug"]
