@@ -1,5 +1,5 @@
 <div class='edit-sidebar'>
-    <form autocomplete='off'>
+    <form id='post-edit-form' autocomplete='off'>
         <input type='submit' value='Save' class='submit'/>
 
         <div class='messages'></div>

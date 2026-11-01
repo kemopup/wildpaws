@@ -106,6 +106,7 @@ privileges:
     'posts:edit:relations':         regular
     'posts:edit:safety':            power
     'posts:edit:source':            regular
+    'posts:edit:description':       regular
     'posts:edit:tags':              regular
     'posts:edit:thumbnail':         power
     'posts:feature':                moderator

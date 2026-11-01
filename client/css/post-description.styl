@@ -1,0 +1,77 @@
+@import colors
+
+.post-view .post-description
+    margin: 1.5em 0 2em
+    padding: 1.2em
+    border: 1px solid $line-color
+    border-radius: 0.3em
+    background: $window-color
+
+    h2
+        margin-top: 0
+
+    label
+        display: block
+        margin-bottom: 0.5em
+
+    textarea
+        display: block
+        box-sizing: border-box
+        width: 100%
+        min-height: 14em
+        resize: vertical
+        font-family: monospace
+        line-height: 1.5
+
+    .description-actions
+        display: flex
+        flex-wrap: wrap
+        gap: 0.6em
+        margin: 0.8em 0
+
+    .empty-description
+        color: $inactive-link-color
+
+    .messages
+        margin-top: 0.8em
+
+.post-description-content
+    overflow-wrap: anywhere
+    line-height: 1.6
+
+    img
+        max-width: 100%
+        height: auto
+
+    pre
+        overflow-x: auto
+        padding: 0.7em
+        background: rgba(128, 128, 128, 0.1)
+
+    blockquote
+        margin-left: 0
+        padding-left: 1em
+        border-left: 3px solid $line-color
+
+    table
+        display: block
+        overflow-x: auto
+
+    td, th
+        padding: 0.3em 0.6em
+        border: 1px solid $line-color
+
+.darktheme .post-view .post-description
+    background: $window-color-darktheme
+
+#post-upload .post-description-input
+    margin: 1em 0
+
+    label
+        display: block
+        margin-bottom: 0.4em
+
+    textarea
+        width: 100%
+        box-sizing: border-box
+        resize: vertical

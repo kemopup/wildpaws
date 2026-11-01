@@ -103,6 +103,7 @@ def test_get_post_snapshot(post_factory, user_factory, tag_factory):
         "relations": [2, 3],
         "safety": "safe",
         "source": "example.com",
+        "description": "",
         "tags": ["dummy-tag1", "dummy-tag2"],
     }
 

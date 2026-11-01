@@ -66,6 +66,7 @@ def create_post(
     tag_names = ctx.get_param_as_string_list("tags", default=[])
     safety = ctx.get_param_as_string("safety")
     source = ctx.get_param_as_string("source", default="")
+    description = ctx.get_param_as_string("description", default="")
     if ctx.has_param("contentUrl") and not source:
         source = ctx.get_param_as_string("contentUrl", default="")
     relations = ctx.get_param_as_int_list("relations", default=[])
@@ -81,6 +82,7 @@ def create_post(
         auth.verify_privilege(ctx.user, "tags:create")
     posts.update_post_safety(post, safety)
     posts.update_post_source(post, source)
+    posts.update_post_description(post, description)
     posts.update_post_relations(post, relations)
     posts.update_post_notes(post, notes)
     posts.update_post_flags(post, flags)
@@ -149,6 +151,11 @@ def update_post(ctx: rest.Context, params: Dict[str, str]) -> rest.Response:
         posts.update_post_source(post, ctx.get_param_as_string("source"))
     elif ctx.has_param("contentUrl"):
         posts.update_post_source(post, ctx.get_param_as_string("contentUrl"))
+    if ctx.has_param("description"):
+        auth.verify_privilege(ctx.user, "posts:edit:description")
+        posts.update_post_description(
+            post, ctx.get_param_as_string("description")
+        )
     if ctx.has_param("relations"):
         auth.verify_privilege(ctx.user, "posts:edit:relations")
         posts.update_post_relations(

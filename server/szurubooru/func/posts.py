@@ -180,6 +180,7 @@ class PostSerializer(serialization.BaseSerializer):
             "lastEditTime": self.serialize_last_edit_time,
             "safety": self.serialize_safety,
             "source": self.serialize_source,
+            "description": self.serialize_description,
             "type": self.serialize_type,
             "mimeType": self.serialize_mime,
             "checksum": self.serialize_checksum,
@@ -227,6 +228,9 @@ class PostSerializer(serialization.BaseSerializer):
 
     def serialize_source(self) -> Any:
         return self.post.source
+
+    def serialize_description(self) -> Any:
+        return self.post.description or ""
 
     def serialize_type(self) -> Any:
         return TYPE_MAP[self.post.type]
@@ -446,6 +450,13 @@ def update_post_safety(post: model.Post, safety: str) -> None:
     post.safety = safety
 
 
+def update_post_description(
+    post: model.Post, description: Optional[str]
+) -> None:
+    assert post
+    post.description = description or None
+
+
 def update_post_source(post: model.Post, source: Optional[str]) -> None:
     assert post
     if util.value_exceeds_column_size(source, model.Post.source):
@@ -517,6 +528,7 @@ def generate_alternate_formats(
             update_post_flags(mp4_post, ["loop"])
             update_post_safety(mp4_post, post.safety)
             update_post_source(mp4_post, post.source)
+            update_post_description(mp4_post, post.description)
             new_posts += [(mp4_post, new_tags)]
 
         if config.config["convert"]["gif"]["to_webm"]:
@@ -526,6 +538,7 @@ def generate_alternate_formats(
             update_post_flags(webm_post, ["loop"])
             update_post_safety(webm_post, post.safety)
             update_post_source(webm_post, post.source)
+            update_post_description(webm_post, post.description)
             new_posts += [(webm_post, new_tags)]
 
         db.session.flush()

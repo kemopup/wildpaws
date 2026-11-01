@@ -184,6 +184,7 @@ class PostUploadController {
     _uploadableToPost(uploadable) {
         let post = new Post();
         post.safety = uploadable.safety;
+        post.description = uploadable.description;
         post.flags = uploadable.flags;
         for (let tagName of uploadable.tags) {
             const tag = new Tag();

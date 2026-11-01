@@ -11,6 +11,7 @@ scrubbing](https://sjp.pwn.pl/sjp/;2527372). It is pronounced as *shoorubooru*.
 - Ability to retrieve web video content using [yt-dlp](https://github.com/yt-dlp/yt-dlp)
 - Post comments
 - Post notes / annotations, including arbitrary polygons
+- Post descriptions with Markdown formatting and live preview
 - Rich JSON REST API ([see documentation](doc/API.md))
 - Token based authentication for clients
 - Rich search system

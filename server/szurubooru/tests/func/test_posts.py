@@ -225,6 +225,7 @@ def test_serialize_post(
             "lastEditTime": datetime(1998, 1, 1),
             "safety": "safe",
             "source": "4gag",
+            "description": "",
             "type": "image",
             "checksum": "deadbeef",
             "checksumMD5": "deadbeef",

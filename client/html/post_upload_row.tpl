@@ -69,6 +69,11 @@
 
             <div class='messages'></div>
 
+            <div class='post-description-input'>
+                <label for='upload-description-<%- ctx.uploadable.key %>'>Description (supports Markdown)</label>
+                <textarea id='upload-description-<%- ctx.uploadable.key %>' name='description' rows='6' placeholder='Describe this post (optional)'><%- ctx.uploadable.description %></textarea>
+            </div>
+
             <% if (ctx.uploadable.lookalikes.length) { %>
                 <ul class='lookalikes'>
                     <% for (let lookalike of ctx.uploadable.lookalikes) { %>

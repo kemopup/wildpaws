@@ -74,6 +74,10 @@ class Post extends events.EventTarget {
         return this._source;
     }
 
+    get description() {
+        return this._description || "";
+    }
+
     get sourceSplit() {
         return this._source.split("\n");
     }
@@ -172,6 +176,10 @@ class Post extends events.EventTarget {
 
     set source(value) {
         this._source = value;
+    }
+
+    set description(value) {
+        this._description = value;
     }
 
     static fromResponse(response) {
@@ -276,6 +284,9 @@ class Post extends events.EventTarget {
         }
         if (this._source !== this._orig._source) {
             detail.source = this._source;
+        }
+        if (this._description !== this._orig._description) {
+            detail.description = this._description;
         }
 
         let apiPromise = this._id
@@ -479,6 +490,7 @@ class Post extends events.EventTarget {
             ).href,
             _thumbnailUrl: response.thumbnailUrl,
             _source: response.source,
+            _description: response.description || "",
             _canvasWidth: response.canvasWidth,
             _canvasHeight: response.canvasHeight,
             _fileSize: response.fileSize,

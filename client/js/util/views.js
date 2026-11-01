@@ -28,8 +28,8 @@ function makeFileSize(fileSize) {
     return misc.formatFileSize(fileSize);
 }
 
-function makeMarkdown(text) {
-    return misc.formatMarkdown(text);
+function makeMarkdown(text, allowHeadings = false) {
+    return misc.formatMarkdown(text, allowHeadings);
 }
 
 function makeRelativeTime(time) {

@@ -36,6 +36,7 @@ class Uploadable extends events.EventTarget {
         this.flags = [];
         this.tags = [];
         this.relations = [];
+        this.description = "";
         this.anonymous = !api.isLoggedIn();
         this.forceAnonymous = !api.isLoggedIn();
     }
@@ -189,12 +190,18 @@ class PostUploadView extends events.EventTarget {
 
     enableForm() {
         views.enableForm(this._formNode);
+        for (const input of this._formNode.querySelectorAll("textarea[name=description]")) {
+            input.disabled = false;
+        }
         this._cancelButtonNode.disabled = true;
         this._formNode.classList.remove("uploading");
     }
 
     disableForm() {
         views.disableForm(this._formNode);
+        for (const input of this._formNode.querySelectorAll("textarea[name=description]")) {
+            input.disabled = true;
+        }
         this._cancelButtonNode.disabled = false;
         this._formNode.classList.add("uploading");
     }
@@ -294,6 +301,10 @@ class PostUploadView extends events.EventTarget {
     _updateUploadableFromDom(uploadable) {
         const rowNode = uploadable.rowNode;
 
+        uploadable.description = rowNode.querySelector(
+            "textarea[name=description]"
+        ).value;
+
         const safetyNode = rowNode.querySelector(".safety input:checked");
         if (safetyNode) {
             uploadable.safety = safetyNode.value;
@@ -385,6 +396,17 @@ class PostUploadView extends events.EventTarget {
         }
 
         uploadable.rowNode = rowNode;
+
+        const descriptionInput = rowNode.querySelector(
+            "textarea[name=description]"
+        );
+        descriptionInput.disabled = this._uploading;
+        descriptionInput.addEventListener(
+            "input", (e) => {
+                uploadable.description = e.target.value;
+                this.dispatchEvent(new CustomEvent("change"));
+            }
+        );
 
         rowNode
             .querySelector("a.remove")

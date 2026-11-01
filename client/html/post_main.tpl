@@ -57,6 +57,24 @@
         <% } %>
 
         <div class='after-mobile-controls'>
+            <section class='post-description'>
+                <h2>Description</h2>
+                <% if (ctx.editMode && ctx.canEditPostDescription) { %>
+                    <label for='post-description'>Description (supports Markdown)</label>
+                    <textarea id='post-description' name='description' form='post-edit-form' rows='12' placeholder='Describe this post. Use **bold**, *italic*, lists, and [links](https://example.com).'><%- ctx.post.description %></textarea>
+                    <div class='description-actions'>
+                        <button type='button' class='description-preview-toggle' aria-expanded='false' aria-controls='post-description-preview'>Show preview</button>
+                        <button type='submit' form='post-edit-form'>Save post</button>
+                    </div>
+                    <div id='post-description-preview' class='post-description-content' hidden></div>
+                    <div class='messages'></div>
+                <% } else if (ctx.post.description) { %>
+                    <div class='post-description-content'><%= ctx.makeMarkdown(ctx.post.description, true) %></div>
+                <% } else { %>
+                    <p class='empty-description'>No description yet.</p>
+                <% } %>
+            </section>
+
             <% if (ctx.canCreateComments) { %>
                 <h2>Add comment</h2>
                 <div class='comment-form-container'></div>

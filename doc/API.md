@@ -848,6 +848,7 @@ data.
         "tags":      [<tag1>, <tag2>, <tag3>],
         "safety":    <safety>,
         "source":    <source>,                    // optional
+        "description": <description>,             // optional Markdown text
         "relations": [<post1>, <post2>, <post3>], // optional
         "notes":     [<note1>, <note2>, <note3>], // optional
         "flags":     [<flag1>, <flag2>],          // optional
@@ -898,6 +899,7 @@ data.
         "tags":      [<tag1>, <tag2>, <tag3>],    // optional
         "safety":    <safety>,                    // optional
         "source":    <source>,                    // optional
+        "description": <description>,             // optional Markdown text
         "relations": [<post1>, <post2>, <post3>], // optional
         "notes":     [<note1>, <note2>, <note3>], // optional
         "flags":     [<flag1>, <flag2>]           // optional
@@ -2425,6 +2427,7 @@ One file together with its metadata posted to the site.
     "lastEditTime":       <last-edit-time>,
     "safety":             <safety>,
     "source":             <source>,
+    "description":        <description>,
     "type":               <type>,
     "checksum":           <checksum>,
     "checksumMD5":        <checksum-MD5>,
@@ -2478,6 +2481,11 @@ One file together with its metadata posted to the site.
     - `"unsafe"`
 
 - `<source>`: where the post was grabbed form, supplied by the user.
+- `<description>`: optional long-form Markdown source. Existing posts return an
+  empty string. Send an empty string to clear it; omit it to preserve the current
+  description. Editing requires `posts:edit:description` (regular users by
+  default). The client sanitizes rendered Markdown; the API stores the original
+  text.
 - `<type>`: the type of the post.
 
     Available values:
