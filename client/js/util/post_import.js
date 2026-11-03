@@ -11,7 +11,7 @@ function getImportMimeType(value) {
 }
 
 function hasUncategorizedTags(provider) {
-    return ["x", "inkbunny"].includes(provider);
+    return ["x", "inkbunny", "furaffinity", "bluesky"].includes(provider);
 }
 
 function uniqueStrings(values, ignoreCase = true) {
@@ -97,6 +97,13 @@ function importPreviewUrl(provider, value) {
         if (provider === "inkbunny" && !url.search && !url.hash) {
             return ["inkbunny.net", "ib.metapix.net"].some(domain =>
                 url.hostname === domain || url.hostname.endsWith("." + domain))
+                ? value : null;
+        }
+        if (provider === "furaffinity" && !url.search && !url.hash) {
+            return url.hostname === "t.furaffinity.net" ? value : null;
+        }
+        if (provider === "bluesky" && !url.search && !url.hash) {
+            return ["cdn.bsky.app", "video.bsky.app"].includes(url.hostname)
                 ? value : null;
         }
         return null;

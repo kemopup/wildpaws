@@ -30,6 +30,8 @@ services:
     depends_on:
       sql:
         condition: service_healthy
+      fa-import:
+        condition: service_healthy
     volumes:
       - dev-data:/data
       - ./dev/config.local.yaml:/opt/app/config.yaml:ro
@@ -56,6 +58,23 @@ services:
           path: ./server/Dockerfile
         - action: rebuild
           path: ./server/config.yaml.dist
+
+  fa-import:
+    build:
+      context: ./dev/fa-import
+      target: runtime
+    # Private helper for the newer FAAPI runtime; no host port is published.
+    init: true
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)"]
+      interval: 5s
+      timeout: 5s
+      start_period: 10s
+      retries: 20
+    develop:
+      watch:
+        - action: rebuild
+          path: ./dev/fa-import
 
   assets:
     build:

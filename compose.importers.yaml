@@ -1,0 +1,23 @@
+# Production overlay: retain the installation's existing builds, mounts and ports.
+# docker compose -f docker-compose.yml -f compose.importers.yaml up -d
+services:
+  client:
+    restart: unless-stopped
+  server:
+    restart: unless-stopped
+    depends_on:
+      fa-import:
+        condition: service_healthy
+  fa-import:
+    build:
+      context: ./dev/fa-import
+      target: runtime
+    init: true
+    restart: unless-stopped
+    # Internal Docker network only. Never publish this service through a proxy.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)"]
+      interval: 5s
+      timeout: 5s
+      start_period: 10s
+      retries: 20

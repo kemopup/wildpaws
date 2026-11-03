@@ -45,6 +45,10 @@ post_import:
     inkbunny:
         username:
         password:
+    # Values only from an active Fur Affinity login; never a complete Cookie header.
+    furaffinity:
+        a:
+        b:
 
 # automatically convert animated GIF uploads to video formats
 convert:

@@ -53,6 +53,7 @@ class _Converter:
             "tbib": "https://tbib.org",
             "gelbooru": "https://gelbooru.com",
             "inkbunny": "https://inkbunny.net",
+            "furaffinity": "https://www.furaffinity.net",
         }.get(provider, "https://e621.net")
         self.lossy = False
 

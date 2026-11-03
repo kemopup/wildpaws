@@ -10,13 +10,16 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Union
 
 from szurubooru import config, errors
 from szurubooru.func import (
+    bluesky_network,
     images,
+    import_bluesky,
     import_booru,
     import_description,
+    import_furaffinity,
     import_inkbunny,
     import_x,
     net,
@@ -50,6 +53,12 @@ _HOSTS = {
     "www.fixupx.com": "x",
     "inkbunny.net": "inkbunny",
     "www.inkbunny.net": "inkbunny",
+    "furaffinity.net": "furaffinity",
+    "www.furaffinity.net": "furaffinity",
+    "bsky.app": "bluesky",
+    "www.bsky.app": "bluesky",
+    "fxbsky.app": "bluesky",
+    "www.fxbsky.app": "bluesky",
 }
 _DAPI_HOSTS = {
     "rule34": "rule34.xxx",
@@ -63,15 +72,21 @@ _INKBUNNY_SESSION_LOCK = threading.Lock()
 _INKBUNNY_SESSION = {}
 
 
-def parse_post_url(url: str) -> Tuple[str, int, str]:
+def parse_post_url(url: str) -> Tuple[str, Union[int, str], str]:
     try:
         parsed = urllib.parse.urlsplit(url.strip())
         provider = _HOSTS.get(parsed.hostname or "")
+        if provider == "bluesky":
+            _actor, rkey, canonical, _index = bluesky_network.parse_post_url(
+                url
+            )
+            return provider, rkey, canonical
         if (
             (
                 parsed.scheme != "https"
                 and not (
-                    provider in ("x", "inkbunny") and parsed.scheme == "http"
+                    provider in ("x", "inkbunny", "furaffinity")
+                    and parsed.scheme == "http"
                 )
             )
             or not provider
@@ -89,6 +104,11 @@ def parse_post_url(url: str) -> Tuple[str, int, str]:
             if not x_match:
                 raise ValueError()
             post_id = x_match.group("id")
+        elif provider == "furaffinity":
+            match = re.fullmatch(r"/(?:view|full)/([0-9]+)/?", parsed.path)
+            if not match:
+                raise ValueError()
+            post_id = match.group(1)
         elif provider == "inkbunny":
             page = None
             match = re.fullmatch(
@@ -135,9 +155,15 @@ def parse_post_url(url: str) -> Tuple[str, int, str]:
             raise ValueError()
     except (ValueError, AttributeError):
         raise errors.InvalidParameterError(
-            "Enter an HTTPS post link from a supported site: e621, E6AI, Rule34, TBIB, Gelbooru, X/Twitter, or Inkbunny."
+            "Enter an HTTPS post link from a supported site: e621, E6AI, Rule34, TBIB, Gelbooru, X/Twitter, Inkbunny, Fur Affinity, or Bluesky."
         ) from None
     post_id = int(post_id)
+    if provider == "furaffinity":
+        return (
+            provider,
+            post_id,
+            "https://www.furaffinity.net/view/%d/" % post_id,
+        )
     if provider == "inkbunny":
         canonical = "https://inkbunny.net/s/%d" % post_id
         if page:
@@ -400,6 +426,80 @@ def _request_booru_details(provider, post_url, post_tag_names=None):
         ) from None
 
 
+def _furaffinity_payload(post_id):
+    """Send FA cookies only to our private helper, never a public API mirror."""
+    settings = (config.config.get("post_import", {}) or {}).get(
+        "furaffinity", {}
+    ) or {}
+    if not isinstance(settings, dict):
+        raise ImportError(
+            "Fur Affinity import account configuration is invalid."
+        )
+    cookies = []
+    for name in ("a", "b"):
+        value = settings.get(name)
+        if (
+            not isinstance(value, str)
+            or not value
+            or len(value) > 4096
+            or any(
+                ord(char) <= 32 or ord(char) > 126 or char in ';,"\\'
+                for char in value
+            )
+        ):
+            raise ImportError(
+                "Fur Affinity import needs valid a and b session-cookie values in the private YAML configuration."
+            )
+        cookies.append({"name": name, "value": value})
+    body = json.dumps({"cookies": cookies, "bbcode": True}).encode("utf8")
+    request = urllib.request.Request(
+        "http://fa-import:8080/submission/%d/" % post_id,
+        data=body,
+        headers={
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        },
+    )
+    try:
+        # A configured global HTTP proxy must not receive private cookies.
+        opener = urllib.request.build_opener(
+            urllib.request.ProxyHandler({}), _NoRedirect()
+        )
+        with opener.open(request, timeout=50) as response:
+            data = response.read(_MAX_METADATA + 1)
+        if len(data) > _MAX_METADATA:
+            raise ImportError(
+                "The Fur Affinity helper returned too much metadata."
+            )
+        return json.loads(data.decode("utf8"))
+    except urllib.error.HTTPError as ex:
+        code = None
+        try:
+            data = json.loads(ex.read(4096).decode("utf8"))
+            code = data.get("error") if isinstance(data, dict) else None
+        except (ValueError, UnicodeError, OSError):
+            pass
+        if code == "theme_required":
+            message = "Set the Fur Affinity account to the Modern theme, then try again."
+        elif ex.code in (401, 403) or code == "auth_required":
+            message = "Fur Affinity rejected the session. Replace the a and b cookies in the private YAML from an active login, then restart the API."
+        elif ex.code == 404 or code == "unavailable":
+            message = "This Fur Affinity submission is deleted, private, or unavailable to the import account."
+        elif ex.code in (429, 503) or code == "busy":
+            message = "Fur Affinity is busy or limiting requests. Please wait before trying again."
+        else:
+            message = "Fur Affinity could not return this submission. Please try again later."
+        raise ImportError(message) from None
+    except (urllib.error.URLError, TimeoutError, OSError):
+        raise ImportError(
+            "The private Fur Affinity import helper is unavailable. Start the helper service and try again."
+        ) from None
+    except (ValueError, UnicodeError):
+        raise ImportError(
+            "The Fur Affinity helper did not return valid post metadata."
+        ) from None
+
+
 def _parse_tbib_details(text, post_url, post_tag_names):
     return import_booru.parse_details(text, post_url, post_tag_names)
 
@@ -513,6 +613,24 @@ def _tag_names(value: Any) -> List[str]:
 
 def preview(url: str) -> Dict[str, Any]:
     provider, post_id, post_url = parse_post_url(url)
+    if provider == "bluesky":
+        actor, rkey, _canonical, index = bluesky_network.parse_post_url(
+            post_url
+        )
+        try:
+            payload, did, pds_url = bluesky_network.fetch_metadata(
+                actor, rkey, user_agent=net.get_import_user_agent()
+            )
+            return import_bluesky.normalize(payload, did, rkey, pds_url, index)
+        except (ValueError, TypeError) as ex:
+            raise ImportError(str(ex)) from None
+    if provider == "furaffinity":
+        try:
+            return import_furaffinity.normalize(
+                _furaffinity_payload(post_id), post_id
+            )
+        except (ValueError, TypeError) as ex:
+            raise ImportError(str(ex)) from None
     if provider == "inkbunny":
         data = _inkbunny_payload(post_id)
         selector = re.search(r"-p([0-9]+)-$", post_url)
@@ -720,12 +838,31 @@ def apply_tag_categories(new_tags: List, category_map: Any) -> None:
 def thumbnail(url: str) -> str:
     """Return a display-only JPEG; the upload continues to use its original URL."""
     provider, _post_id, canonical = parse_post_url(url)
-    if provider not in ("gelbooru", "inkbunny"):
+    if provider not in ("gelbooru", "inkbunny", "furaffinity", "bluesky"):
         raise errors.InvalidParameterError(
-            "Server previews currently support Gelbooru and Inkbunny post links only."
+            "Server previews currently support Gelbooru, Inkbunny, Fur Affinity, and Bluesky post links only."
         )
     metadata = preview(canonical)
-    if provider == "inkbunny":
+    if provider == "bluesky":
+        media = metadata.get("media") or []
+        try:
+            download_url = import_bluesky.preview_url(
+                media[0].get("previewUrl")
+            )
+        except (ValueError, IndexError, AttributeError):
+            raise ImportError(
+                "Bluesky did not supply an accessible preview for this media item."
+            ) from None
+    elif provider == "furaffinity":
+        try:
+            download_url = import_furaffinity.preview_url(
+                metadata.get("previewUrl")
+            )
+        except (ValueError, TypeError):
+            raise ImportError(
+                "Fur Affinity did not supply an accessible image preview."
+            ) from None
+    elif provider == "inkbunny":
         media = metadata.get("media") or []
         try:
             download_url = import_inkbunny.preview_url(

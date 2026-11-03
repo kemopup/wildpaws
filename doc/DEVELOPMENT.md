@@ -1,8 +1,9 @@
 # Local development on Windows
 
 This checkout is a development copy of <https://github.com/kemopup/wildpaws>.
-Production runs separately at `/home/redwolf/wildpaws` on the server. Nothing in
-this workflow deploys, connects to the production database, or copies its secrets.
+Production runs separately at `/home/redwolf/wildpaws` on the server. Local setup
+does not deploy, connect to its database, or copy its secrets. The final section
+describes the separate, explicit production deployment procedure.
 
 ## Windows prerequisites
 
@@ -225,6 +226,66 @@ credited in the description without being assumed to be its artist. BBCode is
 converted to Markdown, with a warning for simplified formatting. General,
 Mature, and Adult map to `safe`, `sketchy`, and `unsafe` respectively.
 
+Fur Affinity imports use a private helper with the pinned
+[FAAPI library](https://github.com/FurryCoders/FAAPI). The helper has its own
+Python runtime, so the main application stack stays unchanged. Local Compose
+starts it as `fa-import`; do not publish its port or proxy it to the browser.
+The Wildpaws API sends account cookies only to this fixed internal service.
+It never sends them to a public third-party API mirror or a media CDN.
+
+```yaml
+post_import:
+    furaffinity:
+        a: 'YOUR_FA_A_COOKIE_VALUE'
+        b: 'YOUR_FA_B_COOKIE_VALUE'
+```
+
+Use the values only, not a full Cookie header. Keep them in private YAML and
+use the account's Modern theme. The cookies belong to an active FA login;
+logging out of that originating session invalidates them. There is no promised
+renewal schedule. Replace both from an active login if the importer reports
+an expired/rejected session, then restart the Wildpaws API. Cookie changes
+replace the helper's cached account session automatically on the next request.
+
+`/view/123/` and `/full/123/` links normalize to the canonical HTTPS submission.
+The draft retains the original media URL, source link, rating, uploader credit,
+and Markdown description. FA keywords are uncategorized, so none are imported.
+Display previews use the server thumbnail endpoint; originals remain untouched.
+Deleted/private submissions, login failures, theme mismatches, and blocked or
+rate-limited requests return readable errors without alternate access paths.
+
+The helper enforces a shared minimum request interval and exponential cooldown
+after rate limits/timeouts. Review FA's current
+[automated-access policy and API announcement](https://www.furaffinity.net/journal/11377368/)
+before operating the integration: it describes access requests for
+machine-to-machine scraping services and restrictions during high traffic or
+DDoS mitigation. An official API closed beta is a future integration option.
+
+Bluesky imports use the [official public API](https://bsky.network/docs/api-directory/)
+directly. No Bluesky password, app password, session cookie, or API key is
+needed for public-post imports. Both Bluesky and FxBsky share links are accepted;
+queries are removed and the canonical source uses the author's stable DID.
+An optional `#media-N` selector imports just that attached item.
+
+Post text is converted to literal Markdown with uploader credit and rich-text
+links. Artist/character/hashtag tags are not inferred. Each attached image or
+video becomes a separate editable draft, in order. Quoted posts, external card
+images, replies, and profile media are not imported. Bluesky labels do not map
+directly to the site's three ratings, so drafts use `unsafe` and require rating
+review. Deleted, unavailable, and unauthenticated-view-restricted posts return
+an error; the importer does not try another record access path.
+
+Original media comes from the author's verified data server using
+[`com.atproto.sync.getBlob`](https://atproto.com/specs/blob). These are the full
+stored files, which Bluesky may already have processed before storing. The
+uploader's DID is resolved and checked, public HTTPS destinations are validated,
+connections are pinned to checked public addresses, redirects are rejected, and
+downloaded bytes are checked against their content hash. Existing upload size
+limits still apply. Display-only image/video previews come from validated
+Bluesky CDNs through the separate thumbnail endpoint; they never replace the
+original file. No other provider's credentials are sent to Bluesky or its data
+servers.
+
 X/Twitter imports use the public [FxTwitter API](https://github.com/allnodes/FxTwitter)
 at `api.fxtwitter.com`; no X login or API key is sent. Only the post ID is sent
 to that service. The post author's username is credited with a profile link in
@@ -259,3 +320,81 @@ The agreed workflow is:
 Server updates must preserve its existing local Compose changes and application
 configuration. The development Compose file and credentials are only for local
 use. Development setup by itself does not change the production app.
+The inherited DockerHub publishing jobs run only in `rr-/szurubooru`; this fork
+builds its own production images locally from the reviewed GitHub commit.
+
+### Production deployment
+
+Use the reviewed `dev/deploy-production.sh` after the verified code is available
+on GitHub `master`. Run it as `redwolf`, the repository owner, **not** with
+`sudo bash`. The script requests sudo for individual Docker commands if needed
+and refreshes it immediately before maintenance. Keep the copied script outside
+the checkout until it updates the repository. Replace `FULL_GITHUB_MASTER_SHA`
+below with the reviewed, full 40-character commit SHA; it must match
+`origin/master` exactly. An exclusive repository lock prevents concurrent apply
+runs.
+
+```sh
+bash /home/redwolf/deploy-production.sh --commit FULL_GITHUB_MASTER_SHA --plan --post-edit-policy
+bash /home/redwolf/deploy-production.sh --commit FULL_GITHUB_MASTER_SHA --apply --post-edit-policy
+```
+
+The plan makes no changes. Apply preserves the original branch pointer (including
+`safe-backup`) by creating a new `codex/production-<timestamp>` branch and
+fast-forwarding it to the reviewed commit. It preserves the existing locally
+modified `docker-compose.yml`, `.env`, private `server/config.yaml`, and untracked
+files such as the old virtual environment. Tracked local changes other than the
+base Compose file, or an incoming change to that customized file, stop deployment
+for explicit resolution. There is no force checkout or stash.
+
+Production must use both Compose files:
+
+```sh
+docker compose -f docker-compose.yml -f compose.importers.yaml ps
+```
+
+The `compose.importers.yaml` overlay retains the installation's client/server
+builds, ports, environment, data mounts and SQL configuration. It adds the
+private FA helper without published ports, waits for its local health check, and
+sets client/server/helper restart policies to `unless-stopped`. Always include
+this overlay for subsequent app updates; the development Compose file is not
+used on the server.
+
+Before any source or service update, the script requires existing client/server
+builds to resolve to this checkout's `client` and `server` directories, with
+their default Dockerfiles and either the `release` target or no explicit target.
+Image-only configurations, other build directories, custom Dockerfiles and test
+targets require explicit resolution instead of deploying a different image.
+It also verifies that both resolved Compose settings and the running containers
+use the local `sql` service on port 5432 with matching nonblank database names
+and roles. The name is `POSTGRES_DB` when present, otherwise `POSTGRES_USER`.
+Any disagreement stops deployment before source or service changes, so the
+backup cannot silently target a different database. Environment values and
+passwords are never printed during these checks.
+
+The script builds all new app images before stopping the running client/server.
+By default, it then creates a consistent PostgreSQL custom-format dump and a
+complete original-media tar archive while the app is stopped; SQL stays running.
+It also backs up private YAML, `.env`, Compose files, the local Compose patch,
+and previous running image references outside the repository under
+`/home/redwolf/wildpaws-backups`. Backup paths must not overlap data/SQL mounts or
+the repository, and available space is checked. The directory contains secrets:
+keep it private. `--backup-root /absolute/separate/path` selects another location;
+use `--skip-media-backup` only when a separate media backup already exists.
+
+Existing production provider accounts remain in place. The script never copies
+Dev account credentials or resets unrelated settings. The explicit
+`--post-edit-policy` flag changes only these requested ranks: content, thumbnail,
+safety, source, relations, flags and general description editing require
+`moderator`; tags, notes and editing one's own description require `regular`.
+All other privilege entries, including the general post-edit access setting,
+remain unchanged. This update is atomic and retains the file's owner and mode.
+
+Startup recreates the client/server containers even on a repeated deployment,
+so their bind mounts use the newly written private config file. Deployment
+finishes by checking the local client and JSON API. If a backup fails
+before the new server starts, it attempts to restart the unchanged old containers.
+Once new startup/database migrations begin, rollback is manual: the private
+backup includes `ROLLBACK.txt` and an override referencing the saved old images.
+Confirm schema compatibility before using old images. No database restore,
+database/media deletion, or volume removal happens automatically.

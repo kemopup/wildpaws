@@ -183,6 +183,14 @@ def test_resolved_provider_url_receives_importer_identity():
             "https://tx.ib.metapix.net/files/full/original.mp4",
             "https://inkbunny.net/",
         ),
+        (
+            "https://d.furaffinity.net/art/owner/123/original.png",
+            "https://www.furaffinity.net/",
+        ),
+        (
+            "https://t.furaffinity.net/123@200.jpg",
+            "https://www.furaffinity.net/",
+        ),
     ],
 )
 def test_additional_providers_get_application_identity_and_site_referer(
@@ -209,6 +217,7 @@ def test_additional_providers_get_application_identity_and_site_referer(
         "https://not-gelbooru.com/images/original.png",
         "https://inkbunny.net.evil.test/files/full/original.png",
         "https://ib.metapix.net.evil.test/files/full/original.png",
+        "https://d.furaffinity.net.evil.test/art/owner/123/original.png",
     ],
 )
 def test_lookalike_domains_receive_no_provider_identity_or_site_referer(url):

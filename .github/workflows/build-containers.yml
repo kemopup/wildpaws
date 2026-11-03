@@ -5,6 +5,8 @@ on:
       - master
 jobs:
   build-client:
+    # Forks build their own deployment images; do not publish upstream tags.
+    if: github.repository == 'rr-/szurubooru'
     name: Build and push client/ Docker container
     runs-on: ubuntu-latest
     steps:
@@ -57,6 +59,7 @@ jobs:
           ./client
 
   build-server:
+    if: github.repository == 'rr-/szurubooru'
     name: Build and push server/ Docker container
     runs-on: ubuntu-latest
     steps:

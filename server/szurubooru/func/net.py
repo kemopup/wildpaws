@@ -8,7 +8,7 @@ from threading import Thread
 from typing import Any, Dict, List, Optional
 
 from szurubooru import config, errors
-from szurubooru.func import mime
+from szurubooru.func import bluesky_network, mime
 
 logger = logging.getLogger(__name__)
 _dl_chunk_size = 2**15
@@ -53,6 +53,9 @@ def _get_download_user_agent(url: str) -> Optional[str]:
                     "video.twimg.com",
                     "inkbunny.net",
                     "ib.metapix.net",
+                    "furaffinity.net",
+                    "cdn.bsky.app",
+                    "video.bsky.app",
                 )
             )
         ):
@@ -76,6 +79,10 @@ def _get_download_referer(url: str) -> str:
                     parsed.hostname or ""
                 ).endswith("." + domain):
                     return "https://" + domain + "/"
+            if parsed.hostname == "furaffinity.net" or (
+                parsed.hostname or ""
+            ).endswith(".furaffinity.net"):
+                return "https://www.furaffinity.net/"
             if (
                 parsed.hostname == "inkbunny.net"
                 or any(
@@ -90,14 +97,27 @@ def _get_download_referer(url: str) -> str:
     return url
 
 
+def _download_bluesky_blob(url: str) -> bytes:
+    return bluesky_network.download_blob(
+        url,
+        config.config["max_dl_filesize"],
+        user_agent=_get_download_user_agent(url) or get_import_user_agent(),
+    )
+
+
 def download(url: str, use_video_downloader: bool = False) -> bytes:
     assert url
+    if bluesky_network.is_blob_url(url):
+        return _download_bluesky_blob(url)
     youtube_dl_error = None
     if use_video_downloader:
         try:
             url = _get_youtube_dl_content_url(url) or url
         except errors.ThirdPartyError as ex:
             youtube_dl_error = ex
+
+    if bluesky_network.is_blob_url(url):
+        return _download_bluesky_blob(url)
 
     request = urllib.request.Request(url)
     user_agent = _get_download_user_agent(url)

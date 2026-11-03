@@ -93,13 +93,13 @@ class PostUploadController {
     }
 
     _loadImportThumbnail(metadata, uploadable) {
-        if (!["gelbooru", "inkbunny"].includes(metadata.provider) ||
+        if (!["gelbooru", "inkbunny", "furaffinity", "bluesky"].includes(metadata.provider) ||
             this._previewRequestsAborted || !this._view.hasUploadable(uploadable)) {
             return;
         }
-        if (metadata.provider === "inkbunny") {
-            // One API session serves every page. Fetch their display previews
-            // in order while keeping the upload form available immediately.
+        if (["inkbunny", "furaffinity", "bluesky"].includes(metadata.provider)) {
+            // Provider sessions fetch display previews one at a time
+            // while keeping the upload form available immediately.
             const previous = this._inkbunnyPreviewQueue || Promise.resolve();
             this._inkbunnyPreviewQueue = previous.catch(() => {}).then(() => {
                 if (!this._previewRequestsAborted && this._view.active &&

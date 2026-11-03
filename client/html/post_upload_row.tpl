@@ -1,6 +1,12 @@
 <li class='uploadable-container'>
     <div class='thumbnail-wrapper'>
-        <% if (ctx.uploadable.importPreviewUrl || ['image'].includes(ctx.uploadable.type)) { %>
+        <% if (ctx.uploadable.importInfo && ctx.uploadable.importInfo.provider === 'bluesky' && !ctx.uploadable.importPreviewUrl) { %>
+
+            <a href='<%- ctx.uploadable.url || ctx.uploadable.previewUrl %>'>
+                <span class='thumbnail empty' aria-label='Preview'></span>
+            </a>
+
+        <% } else if (ctx.uploadable.importPreviewUrl || ['image'].includes(ctx.uploadable.type)) { %>
 
             <a href='<%- ctx.uploadable.url || ctx.uploadable.previewUrl %>'>
                 <%= ctx.makeThumbnail(ctx.uploadable.previewUrl) %>
