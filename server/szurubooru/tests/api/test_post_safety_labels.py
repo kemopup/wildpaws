@@ -9,10 +9,10 @@ from szurubooru import api, db, model
     "input_value,canonical,label",
     [
         ("Arf", "safe", "Arf"),
-        ("mErR?", "sketchy", "Merr?"),
+        ("mUrR?", "sketchy", "Murr?"),
         ("HUFF!", "unsafe", "Huff!"),
         ("safe", "safe", "Arf"),
-        ("sketchy", "sketchy", "Merr?"),
+        ("sketchy", "sketchy", "Murr?"),
         ("unsafe", "unsafe", "Huff!"),
     ],
 )

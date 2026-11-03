@@ -288,6 +288,9 @@ class Post extends events.EventTarget {
         if (this._description !== this._orig._description) {
             detail.description = this._description;
         }
+        if (!this._id && this.importTagCategories) {
+            detail.tagCategories = this.importTagCategories;
+        }
 
         let apiPromise = this._id
             ? api.put(uri.formatApiLink("post", this.id), detail, files)

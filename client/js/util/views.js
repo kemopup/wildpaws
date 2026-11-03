@@ -42,26 +42,24 @@ function makeRelativeTime(time) {
 }
 
 function makeThumbnail(url, klass, extraProperties) {
+    const backgroundUrl = url && String(url).replace(/['"\\\x00-\x1f\x7f]/g,
+        (char) => "%" + char.charCodeAt(0).toString(16).toUpperCase().padStart(2, "0"));
     return makeElement(
         "span",
         url
             ? {
                   class: klass || "thumbnail",
-                  style: `background-image: url(\'${url}\')`,
+                  style: `background-image: url(\'${backgroundUrl}\')`,
               }
             : { class: "thumbnail empty" },
         makeElement("img", Object.assign({ alt: "thumbnail", src: url }, extraProperties || {}))
     );
 }
 
-function makePoolThumbnails(posts, postFlow) {
+function makePoolThumbnails(posts) {
     if (posts.length == 0) {
         return makeThumbnail(null);
     }
-    if (postFlow) {
-        return makeThumbnail(posts.at(0).thumbnailUrl);
-    }
-
     let s = "";
 
     for (let i = 0; i < Math.min(3, posts.length); i++) {

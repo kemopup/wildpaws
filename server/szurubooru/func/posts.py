@@ -88,7 +88,7 @@ SAFETY_MAP = {
 
 SAFETY_LABELS = {
     model.Post.SAFETY_SAFE: "Arf",
-    model.Post.SAFETY_SKETCHY: "Merr?",
+    model.Post.SAFETY_SKETCHY: "Murr?",
     model.Post.SAFETY_UNSAFE: "Huff!",
 }
 

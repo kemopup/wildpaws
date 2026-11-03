@@ -10,6 +10,7 @@ const Post = require("../models/post.js");
 const Tag = require("../models/tag.js");
 const PostUploadView = require("../views/post_upload_view.js");
 const EmptyView = require("../views/empty_view.js");
+const { expandImportMedia, selectedImportCategories } = require("../util/post_import.js");
 
 const genericErrorMessage =
     "One or more posts needs your attention; " +
@@ -18,6 +19,10 @@ const genericErrorMessage =
 class PostUploadController {
     constructor() {
         this._lastCancellablePromise = null;
+        this._importRequest = null;
+        this._previewRequests = new Set();
+        this._inkbunnyPreviewQueue = Promise.resolve();
+        this._previewRequestsAborted = false;
 
         if (!api.hasPrivilege("posts:create")) {
             this._view = new EmptyView();
@@ -35,6 +40,101 @@ class PostUploadController {
         this._view.addEventListener("change", (e) => this._evtChange(e));
         this._view.addEventListener("submit", (e) => this._evtSubmit(e));
         this._view.addEventListener("cancel", (e) => this._evtCancel(e));
+        this._view.addEventListener("import", (e) => this._evtImport(e));
+        this._view.addEventListener("leave", () => {
+            this._abortImportRequests();
+        });
+    }
+
+    _evtImport(e) {
+        if (this._importRequest) {
+            return;
+        }
+        this._view.setImporting(true);
+        this._view.clearImportMessages();
+        const request = api.post(uri.formatApiLink("import-preview"), {
+            url: e.detail.url,
+        });
+        this._importRequest = request;
+        const finish = () => {
+            this._importRequest = null;
+            if (this._view.active) {
+                this._view.setImporting(false);
+            }
+        };
+        request.then((metadata) => {
+            if (this._view.active) {
+                for (const item of expandImportMedia(metadata)) {
+                    const uploadable = this._view.addImportedPost(item);
+                    this._loadImportThumbnail(item, uploadable);
+                }
+            }
+        }, (error) => {
+            if (this._view.active) {
+                this._view.showImportError(error.message);
+            }
+        }).then(finish, (error) => {
+            if (this._view.active) {
+                this._view.showImportError(error.message);
+            }
+            finish();
+        });
+    }
+
+    _abortImportRequests() {
+        this._previewRequestsAborted = true;
+        if (this._importRequest) {
+            this._importRequest.abort();
+        }
+        for (const request of this._previewRequests) {
+            request.abort();
+        }
+        this._previewRequests.clear();
+    }
+
+    _loadImportThumbnail(metadata, uploadable) {
+        if (!["gelbooru", "inkbunny"].includes(metadata.provider) ||
+            this._previewRequestsAborted || !this._view.hasUploadable(uploadable)) {
+            return;
+        }
+        if (metadata.provider === "inkbunny") {
+            // One API session serves every page. Fetch their display previews
+            // in order while keeping the upload form available immediately.
+            const previous = this._inkbunnyPreviewQueue || Promise.resolve();
+            this._inkbunnyPreviewQueue = previous.catch(() => {}).then(() => {
+                if (!this._previewRequestsAborted && this._view.active &&
+                    this._view.hasUploadable(uploadable)) {
+                    return this._requestImportThumbnail(metadata, uploadable);
+                }
+            });
+            return this._inkbunnyPreviewQueue;
+        }
+        return this._requestImportThumbnail(metadata, uploadable);
+    }
+
+    _requestImportThumbnail(metadata, uploadable) {
+        const request = api.post(uri.formatApiLink("import-thumbnail"), {
+            url: metadata.postUrl,
+        });
+        this._previewRequests.add(request);
+        return request.then((response) => {
+            if (!this._previewRequestsAborted && this._view.hasUploadable(uploadable)) {
+                if (!response || typeof response.previewUrl !== "string" ||
+                    !/^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(response.previewUrl)) {
+                    throw new Error("Invalid preview response.");
+                }
+                this._view.setImportedPreview(uploadable, response.previewUrl);
+            }
+        }).catch(() => {
+            if (!this._previewRequestsAborted && this._view.hasUploadable(uploadable)) {
+                this._view.showInfo(
+                    "Preview unavailable. You can still upload this post.",
+                    uploadable
+                );
+            }
+        }).then(() => {
+            this._previewRequests.delete(request);
+        });
     }
 
     _evtChange(e) {
@@ -53,6 +153,9 @@ class PostUploadController {
     }
 
     _evtSubmit(e) {
+        if (this._importRequest) {
+            return;
+        }
         this._view.disableForm();
         this._view.clearMessages();
         let anyFailures = false;
@@ -193,10 +296,11 @@ class PostUploadController {
         }
         post.relations = uploadable.relations;
         post.newContent = uploadable.url || uploadable.file;
-        // if uploadable.source is ever going to be a valid field (e.g when setting source directly in the upload window)
-        // you'll need to change the line below to `post.source = uploadable.source || uploadable.url;`
-        if (uploadable.url) {
-            post.source = uploadable.url;
+        post.source = uploadable.source || uploadable.url || "";
+        if (uploadable.importTagCategories) {
+            post.importTagCategories = selectedImportCategories(
+                uploadable.importTagCategories, uploadable.tags
+            );
         }
         return post;
     }

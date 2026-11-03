@@ -196,7 +196,7 @@
         </tr>
         <tr>
             <td><code>safety</code></td>
-            <td>having given safety: <code>safety:arf</code>, <code>safety:merr?</code>, or <code>safety:huff!</code>. The original values <code>safe</code>, <code>sketchy</code>, and <code>unsafe</code> also work.</td>
+            <td>having given safety: <code>safety:arf</code>, <code>safety:murr?</code>, or <code>safety:huff!</code>. The original values <code>safe</code>, <code>sketchy</code>, and <code>unsafe</code> also work.</td>
         </tr>
         <tr>
             <td><code>rating</code></td>
@@ -331,10 +331,12 @@
         </tr>
         <tr>
             <td><code>pool</code></td>
-            <td>pool order, requires pool named token</code></td>
+            <td>saved display order, requires a <code>pool:</code> filter; this is the default when searching a pool without an explicit sort</td>
         </tr>
     </tbody>
 </table>
+
+<p>For example, <code>pool:42</code> shows posts in the pool's saved display order. Add <code>sort:id</code> to use post number order, or <code>sort:pool,desc</code> to reverse the display order.</p>
 
 <p><strong>Special tokens</strong></p>
 

@@ -20,7 +20,7 @@
     </span>
     <span class='pool-name'>
       <% if (ctx.canViewPools) { %>
-        <a class='<%- ctx.linkClass %>' href='<%= ctx.formatClientLink('posts', {query: 'pool:' + ctx.pool.id + ' -sort:pool'}) %>'>
+        <a class='<%- ctx.linkClass %>' href='<%= ctx.formatClientLink('posts', {query: 'pool:' + ctx.pool.id + ' sort:pool,asc'}) %>'>
       <% } %>
         Pool: <%- ctx.getPrettyName(ctx.pool.names[0]) %>
       <% if (ctx.canViewPools) { %>

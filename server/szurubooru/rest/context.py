@@ -78,6 +78,14 @@ class Context:
     def has_param(self, name: str) -> bool:
         return name in self._params
 
+    def get_param_as_dict(self, name: str) -> Dict[str, Any]:
+        value = self._params.get(name)
+        if not isinstance(value, dict):
+            raise errors.InvalidParameterError(
+                "Parameter %r must be an object." % name
+            )
+        return value
+
     def get_param_as_list(
         self, name: str, default: Union[object, List[Any]] = MISSING
     ) -> List[Any]:

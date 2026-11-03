@@ -23,6 +23,29 @@ thumbnails:
 user_agent:
 max_dl_filesize: 25.0E+6 # maximum filesize limit in bytes
 
+# Optional server-side accounts for metadata imports. Put real credentials only
+# in your private config.yaml, never in this file or in browser-side settings.
+# A shared account's readable metadata is available to logged-in uploaders.
+post_import:
+    user_agent: 'Wildpaws/1.0 (https://github.com/kemopup/wildpaws)'
+    e621:
+        username:
+        api_key:
+    e6ai:
+        username:
+        api_key:
+    rule34:
+        user_id:
+        api_key:
+    gelbooru:
+        user_id:
+        api_key:
+    # Inkbunny uses an API-enabled account password rather than an API key.
+    # Leave both blank for guest access. Registered-account ratings are respected.
+    inkbunny:
+        username:
+        password:
+
 # automatically convert animated GIF uploads to video formats
 convert:
    gif:

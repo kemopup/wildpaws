@@ -438,10 +438,10 @@ def test_filter_by_type(
         ("safety:questionable", [2]),
         ("safety:unsafe", [3]),
         ("safety:Arf", [1]),
-        ("safety:merr?", [2]),
+        ("safety:murr?", [2]),
         ("safety:Huff!", [3]),
         ("rating:arf", [1]),
-        ("rating:MERR?", [2]),
+        ("rating:MURR?", [2]),
         ("rating:HUFF!", [3]),
     ],
 )
@@ -909,6 +909,59 @@ def test_sort_pool(
     verify_unpaged("pool:1 pool:2 sort:pool", [4, 3])
     verify_unpaged("pool:2 pool:1 sort:pool", [3, 4])
     verify_unpaged("sort:pool", [1, 2, 3, 4])
+
+
+@pytest.mark.parametrize(
+    "query,expected_ids",
+    [
+        ("pool:1", [3, 1, 4]),
+        ("pool:1 sort:id", [4, 3, 1]),
+        ("pool:1 sort:id,asc", [1, 3, 4]),
+        ("pool:1 sort:pool,desc", [4, 1, 3]),
+        ("pool:1 -sort:pool", [3, 1, 4]),
+        ("pool:1 pool:2", [1, 3]),
+        ("pool:1 -pool:2", [4]),
+        ("-pool:1", [2]),
+        ("-pool:1 sort:pool,asc", [2]),
+        ("", [4, 3, 2, 1]),
+    ],
+)
+def test_default_pool_display_order(
+    post_factory,
+    pool_factory,
+    pool_category_factory,
+    verify_unpaged,
+    query,
+    expected_ids,
+):
+    posts = {i: post_factory(id=i) for i in range(1, 5)}
+    category = pool_category_factory("display-order")
+    first = pool_factory(id=1, names=["first"], category=category)
+    first.posts = [posts[3], posts[1], posts[4]]
+    second = pool_factory(id=2, names=["second"], category=category)
+    second.posts = [posts[1], posts[3]]
+    db.session.add_all(list(posts.values()) + [first, second])
+    db.session.flush()
+
+    verify_unpaged(query, expected_ids, test_order=True)
+
+
+def test_default_pool_order_does_not_leak_between_queries(
+    post_factory, pool_factory, pool_category_factory, verify_unpaged
+):
+    posts = [post_factory(id=i) for i in range(1, 4)]
+    pool = pool_factory(
+        id=1,
+        names=["ordered"],
+        category=pool_category_factory("display-order"),
+    )
+    pool.posts = [posts[1], posts[0], posts[2]]
+    db.session.add_all(posts + [pool])
+    db.session.flush()
+
+    verify_unpaged("pool:1", [2, 1, 3], test_order=True)
+    verify_unpaged("", [3, 2, 1], test_order=True)
+    verify_unpaged("pool:1 sort:id,asc", [1, 2, 3], test_order=True)
 
 
 @pytest.mark.parametrize(

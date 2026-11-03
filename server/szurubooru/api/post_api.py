@@ -5,6 +5,7 @@ from szurubooru import db, errors, model, rest, search
 from szurubooru.func import (
     auth,
     favorites,
+    post_imports,
     posts,
     scores,
     serialization,
@@ -80,6 +81,10 @@ def create_post(
     )
     if len(new_tags):
         auth.verify_privilege(ctx.user, "tags:create")
+    if ctx.has_param("tagCategories"):
+        post_imports.apply_tag_categories(
+            new_tags, ctx.get_param_as_dict("tagCategories")
+        )
     posts.update_post_safety(post, safety)
     posts.update_post_source(post, source)
     posts.update_post_description(post, description)
