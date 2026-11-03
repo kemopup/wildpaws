@@ -400,7 +400,8 @@ base = 'http://127.0.0.1:' + sys.argv[1]
 for attempt in range(90):
     try:
         for path in ('/', '/api/info'):
-            with urllib.request.urlopen(base + path, timeout=3) as response:
+            request = urllib.request.Request(base + path, headers={'Accept': 'application/json' if path == '/api/info' else 'text/html'})
+            with urllib.request.urlopen(request, timeout=3) as response:
                 if response.status != 200:
                     raise ValueError('Unexpected response status')
                 if path == '/api/info':
