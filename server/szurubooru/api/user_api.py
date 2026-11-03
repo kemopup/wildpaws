@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-from szurubooru import model, rest, search
+from szurubooru import errors, model, rest, search
 from szurubooru.func import auth, serialization, users, versions
 
 _search_executor = search.Executor(search.configs.UserSearchConfig())
@@ -66,6 +66,16 @@ def get_user(ctx: rest.Context, params: Dict[str, str]) -> rest.Response:
 def update_user(ctx: rest.Context, params: Dict[str, str]) -> rest.Response:
     user = users.get_user_by_name(params["user_name"])
     versions.verify_version(user, ctx)
+    if ctx.has_param("wallpaperPostId"):
+        if ctx.user.user_id is None or ctx.user.user_id != user.user_id:
+            raise errors.AuthError("You can only change your own wallpaper.")
+        auth.verify_privilege(ctx.user, "users:edit:self:wallpaper")
+        wallpaper_post_id = (
+            ctx.get_param_as_int("wallpaperPostId", min=1)
+            if ctx.get_param_as_string("wallpaperPostId")
+            else None
+        )
+        users.update_user_wallpaper(user, wallpaper_post_id, ctx.user)
     versions.bump_version(user)
     infix = "self" if ctx.user.user_id == user.user_id else "any"
     if ctx.has_param("name"):

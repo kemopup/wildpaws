@@ -212,6 +212,7 @@ class Post(Base):
     last_edit_time = sa.Column("last_edit_time", sa.DateTime)
     safety = sa.Column("safety", sa.Unicode(32), nullable=False)
     source = sa.Column("source", sa.Unicode(2048))
+    description = sa.Column("description", sa.UnicodeText())
     flags_string = sa.Column("flags", sa.Unicode(32), default="")
 
     # content description
@@ -224,7 +225,7 @@ class Post(Base):
     mime_type = sa.Column("mime-type", sa.Unicode(32), nullable=False)
 
     # foreign tables
-    user = sa.orm.relationship("User")
+    user = sa.orm.relationship("User", foreign_keys=[user_id])
     tags = sa.orm.relationship("Tag", backref="posts", secondary="post_tag")
     signature = sa.orm.relationship(
         "PostSignature",

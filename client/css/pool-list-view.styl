@@ -14,65 +14,60 @@
             flex-direction: column
             align-items: center
             position: relative
-            flex-grow: 1
+            flex-grow: 0
             margin: 2em 1.5em 2em 1.2em
             display: inline-block
             text-align: left
-            min-width: 10em
-            width: 12vw
-            &:not(.flexbox-dummy)
-                min-height: 7.5em
-                height: 9vw
+            min-width: 12em
+            width: clamp(12em, 16vw, 16em)
+            &.flexbox-dummy
+                display: none
 
             .thumbnail-wrapper
-                display: inline-block
+                position: relative
+                display: block
                 width: 100%
-                height: 100%
-                line-height: 80%
-                font-size: 80%
-                color: white
+                aspect-ratio: 7 / 5
                 outline: none
-                border-right: 20px solid transparent
-                &:before
-                    content: ' '
-                    display: block
-                    position: relative
-                    width: 100%
-                    height: 20px
-                    bottom: 20px
 
             .thumbnail
-                width: 100%
-                height: 100%
+                box-sizing: border-box
+                width: calc(100% - 24px)
+                height: calc(100% - 24px)
+                border: 2px solid #ddd
                 outline-offset: -2px
+                background-color: $window-color
                 background-size: cover
-                transition: top .1s ease-in-out, right .1s ease-in-out
                 background-position: 50% 30%
                 position: absolute
                 display: inline-block
-                box-shadow: 0 0 0 1px rgba(0,0,0,0.2)
+                box-shadow: 0 1px 5px rgba(0,0,0,0.65)
 
             .thumbnail-1, .thumbnail.empty
-                right: -4px
-                top: -4px
+                left: 0
+                top: 24px
                 z-index: 30
 
             .thumbnail-2
-                right: -10px
-                top: -10px
+                left: 12px
+                top: 12px
                 z-index: 20
 
             .thumbnail-3
-                right: -16px
-                top: -16px
+                left: 24px
+                top: 0
                 z-index: 10
+
+            .thumbnail.empty
+                background-size: 20px 20px
 
             .pool-name
                 color: black
-                font-size: 1.2em
+                font-size: 1em
                 text-align: center
                 font-weight: bold
-                margin-top: 1.1em
+                margin-top: 0.6em
+                overflow-wrap: anywhere
                 a
                     width: 100%
                     display: inline-block
@@ -81,25 +76,10 @@
                 .thumbnail
                     outline: 2px solid $main-color !important
 
-.pool-list ul li:hover
-    .thumbnail-wrapper
-        .thumbnail-1
-            right: -0px
-            top: -0px
-
-        .thumbnail-3
-            right: -20px
-            top: -20px
-
-.pool-list ul li:has(a:focus), .pool-list ul li:has(a:active)
-    .thumbnail-wrapper
-        .thumbnail-1
-            right: -0px
-            top: -0px
-
-        .thumbnail-3
-            right: -20px
-            top: -20px
+.pool-list .thumbnail-wrapper:hover,
+.pool-list .thumbnail-wrapper:focus-visible
+    .thumbnail
+        outline: 2px solid $main-color
 
 .pool-list-header
     label
@@ -119,21 +99,3 @@
 .darktheme .pool-list-header
     .append
         color: $inactive-link-color-darktheme
-
-.post-flow
-    ul
-        li
-            min-width: inherit
-            width: inherit
-            margin: 0 0.25em 0.5em 0.25em
-            &:not(.flexbox-dummy)
-                height: 14vw
-            .thumbnail
-                position: static
-                outline-offset: -1px
-            .thumbnail-wrapper.no-tags
-                .thumbnail
-                    outline: 2px solid $post-thumbnail-no-tags-border-color
-            &:hover a, a:active, a:focus
-                .thumbnail
-                    outline: 2px solid $main-color !important

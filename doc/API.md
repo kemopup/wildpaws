@@ -34,6 +34,7 @@
         - [Listing tag siblings](#listing-tag-siblings)
     - Posts
         - [Listing posts](#listing-posts)
+        - [Previewing a post-link import](#previewing-a-post-link-import)
         - [Creating post](#creating-post)
         - [Updating post](#updating-post)
         - [Getting post](#getting-post)
@@ -738,6 +739,11 @@ data.
 
     Searches for posts.
 
+    A positive, single-ID `pool:` filter uses the pool's saved display order
+    by default. Explicit sorts override this: `sort:id` uses post number order,
+    and `sort:pool,desc` reverses the saved display order. Queries without a
+    positive pool filter keep the usual newest-post-first default.
+
     **Anonymous tokens**
 
     Same as `tag` token.
@@ -789,7 +795,7 @@ data.
     | `fav-time`           | alias of `fav-date`                                                                                                                     |
     | `feature-date`       | featured at given date                                                                                                                  |
     | `feature-time`       | alias of `feature-time`                                                                                                                 |
-    | `safety`             | having given safety. `<value>` can be either `safe`, `sketchy` or `unsafe`.                                         |
+    | `safety`             | having given safety. `<value>` can be `safe` / `Arf`, `sketchy` / `Murr?`, or `unsafe` / `Huff!` (case-insensitive).                                         |
     | `rating`             | alias of `safety`                                                                                                                       |
 
     **Sort style tokens**
@@ -836,6 +842,78 @@ data.
     | `fav`        | posts added to favorites by currently logged in user          |
     | `tumbleweed` | posts with score of 0, without comments and without favorites |
 
+## Previewing a post-link import
+
+`POST /import-preview` accepts `{ "url": "https://e621.net/posts/123?q=example" }`.
+Requires a logged-in user with `uploads:create` privileges. Supported post links
+are e621, E6AI, Rule34, TBIB, Gelbooru, X/Twitter, Inkbunny, Fur Affinity, and Bluesky. Unrelated search
+arguments and fragments are discarded; explicit media/page selectors are retained.
+
+The response contains `provider`, canonical `postUrl`, original-file `contentUrl`,
+`sources` (including the canonical post link), `tags: { "artist": [],
+"character": [] }`, canonical `safety`, Markdown `description`, and `warnings`.
+No other tag groups are imported. E6AI director/contributor tags are excluded.
+Common DText/BBCode description formatting is converted to Markdown, with a
+warning for simplified formatting. Missing descriptions return an empty string;
+comments are never used as descriptions.
+The original file must be accessible; previews/samples are never substituted.
+Unknown ratings use `unsafe` with a warning so the uploader can review them.
+
+This endpoint reads metadata only and creates no posts, tags, or categories.
+Optional provider credentials are configured only on the server; Rule34 requires
+its own user ID and API key. See [development setup](DEVELOPMENT.md#post-link-imports).
+TBIB and unauthenticated Gelbooru use the public post's explicitly categorized
+tag sidebar and original-file link; uncategorized tags and comments are never
+substituted. Gelbooru's optional API account uses its own user ID and key.
+
+For X links, the response also includes `author: { "username": ..., "url": ... }`,
+`mimeType`, and `media`, an ordered list of `{ "contentUrl": ..., "mimeType": ...,
+"postUrl": ..., "flags": [...] }` objects. Videos may include a `previewUrl`
+poster. The top-level `contentUrl` remains the first selected media file for
+compatibility. Explicit `/photo/N` or `/video/N` links return only that item.
+The description credits the post author and preserves plain post text as escaped
+Markdown. Artist/character tag lists stay empty; hashtags and mentions never
+become tags. The default rating is `unsafe` with a review warning. The original
+X post ID is sent to FxTwitter's public API; no provider credentials are sent.
+
+Inkbunny responses use the same `author`, `mimeType`, and ordered `media` shape.
+The submission owner is credited in the Markdown description; artist and character
+lists remain empty because Inkbunny keywords are uncategorized. `/s/123` returns
+all supported attached originals in display order; `/s/123-p2-` selects page two.
+Legacy `submissionview.php?id=123` links and `#pN` page selectors are accepted.
+Per-file `previewUrl` values are display-only thumbnails and never replace
+`contentUrl`. General/Mature/Adult ratings map to `safe`/`sketchy`/`unsafe`.
+Private, deleted, blocked, or unsupported files return an error. Inkbunny account
+credentials and API session IDs remain server-side and are never part of the
+response. See [development setup](DEVELOPMENT.md#post-link-imports) for private
+username/password configuration and API Access requirements.
+
+Fur Affinity responses use the same ordered `media` shape with one original
+attachment, `author`, and `mimeType`. `/view/123/` and `/full/123/` URLs normalize
+to `https://www.furaffinity.net/view/123/`. The uploader is credited in the
+Markdown description; uncategorized keywords are omitted. General/Mature/Adult
+map to `safe`/`sketchy`/`unsafe`. The private server config contains `a` and `b`
+session-cookie values, sent only to the private helper. Neither cookies nor
+provider login data are returned to the client or attached to media downloads.
+
+Bluesky responses contain ordered `media`, `author`, `mimeType`, and public
+original-blob `contentUrl` values. Input links accept a handle or DID, while
+returned canonical links use the author's stable DID. `#media-N` selects an
+attachment. Text/facet links and uploader credit become Markdown, while tag
+lists stay empty. Bluesky moderation labels require uploader review; the
+default safety is `unsafe`. Public metadata is read directly from Bluesky's
+AppView; full stored media is fetched from the verified account PDS and checked
+against its content ID. No login credentials are needed or forwarded.
+
+`POST /import-thumbnail` accepts `{ "url": <Gelbooru-Inkbunny-FA-or-Bluesky-post-link> }`
+input and requires the same logged-in upload privileges. It returns
+`{ "previewUrl": "data:image/jpeg;base64,..." }`: a small display-only JPEG
+fetched and generated by the server for the upload queue. It resolves the
+original through the validated post link; arbitrary media URLs are not accepted.
+For Inkbunny, Fur Affinity, and Bluesky, it downloads only the selected page's validated public thumbnail,
+including video posters; it does not download the video to generate a preview.
+It does not create posts or change the original upload URL or file bytes.
+
 ## Creating post
 - **Request**
 
@@ -846,8 +924,10 @@ data.
     ```json5
     {
         "tags":      [<tag1>, <tag2>, <tag3>],
+        "tagCategories": {"artist": [<tag1>], "character": [<tag2>]}, // optional
         "safety":    <safety>,
         "source":    <source>,                    // optional
+        "description": <description>,             // optional Markdown text
         "relations": [<post1>, <post2>, <post3>], // optional
         "notes":     [<note1>, <note2>, <note3>], // optional
         "flags":     [<flag1>, <flag2>],          // optional
@@ -885,6 +965,12 @@ data.
     anonymous uploads completely from config.) For details on how to pass `content`
     and `thumbnail`, see [file uploads](#file-uploads).
 
+    Optional `tagCategories` assigns only newly created tags to existing local
+    `artist` and `character` categories (case-insensitive). Other category keys
+    are rejected. Existing tags retain their categories; missing local categories
+    leave new tags in the default category. Tags absent from `tags` are not created
+    by this metadata. Normal tag-creation privileges still apply.
+
 ## Updating post
 - **Request**
 
@@ -898,6 +984,7 @@ data.
         "tags":      [<tag1>, <tag2>, <tag3>],    // optional
         "safety":    <safety>,                    // optional
         "source":    <source>,                    // optional
+        "description": <description>,             // optional Markdown text
         "relations": [<post1>, <post2>, <post3>], // optional
         "notes":     [<note1>, <note2>, <note3>], // optional
         "flags":     [<flag1>, <flag2>]           // optional
@@ -1885,7 +1972,8 @@ data.
         "password":    <user-password>, // optional
         "email":       <email>,         // optional
         "rank":        <rank>,          // optional
-        "avatarStyle": <avatar-style>   // optional
+        "avatarStyle": <avatar-style>,  // optional
+        "wallpaperPostId": <post-id>    // optional; null restores the default
     }
     ```
 
@@ -1919,6 +2007,14 @@ data.
     file - see [file uploads](#file-uploads) for details. All fields except the
     [`version`](#versioning) are optional - update concerns only provided
     fields.
+
+    `wallpaperPostId` selects an existing static image post as the authenticated
+    user's site wallpaper. Only the account owner can change this preference,
+    including when the requester is an administrator. Selection requires
+    `users:edit:self:wallpaper` (regular by default) and `posts:view`.
+    Animation, video and Flash posts cannot be selected. Send `null` to restore
+    the default wallpaper; omit the field to preserve the current preference.
+    Deleting the selected post automatically clears the preference.
 
 ## Getting user
 - **Request**
@@ -2191,6 +2287,7 @@ data.
             "tagNameRegex": <tag-name-regex>,
             "tagCategoryNameRegex": <tag-category-name-regex>,
             "defaultUserRank": <default-rank>,
+            "safetyLabels": { "safe": "Arf", "sketchy": "Murr?", "unsafe": "Huff!" },
             "privileges": <privileges>
         }
     }
@@ -2201,9 +2298,9 @@ data.
     Retrieves simple statistics. `<featured-post>` is null if there is no
     featured post yet. `<server-time>` is pretty much the same as the `Date`
     HTTP field, only formatted in a manner consistent with other dates. Values
-    in `config` key are taken directly from the server config, with the
-    exception of privilege array keys being converted to lower camel case to
-    match the API convention.
+    in `config` key are taken directly from the server config, except for the
+    site's safety label mapping and privilege array keys being converted to
+    lower camel case to match the API convention.
 
 ## Uploading temporary file
 
@@ -2259,7 +2356,8 @@ A single user.
     "uploadedPostCount": <uploaded-post-count>,
     "likedPostCount":    <liked-post-count>,
     "dislikedPostCount": <disliked-post-count>,
-    "favoritePostCount": <favorite-post-count>
+    "favoritePostCount": <favorite-post-count>,
+    "wallpaper":         <wallpaper>
 }
 ```
 
@@ -2299,6 +2397,11 @@ A single user.
   the request is authenticated by the same user. If it's unavailable, the
   server returns `false`.
 - `<favorite-post-count>`: number of favorited posts.
+- `<wallpaper>`: the account's site wallpaper, visible only to the account
+  owner. Returns `false` to other users and `null` when the default should be
+  used. A selection is `{ "postId": <post-id>, "contentUrl": <content-url>,
+  "safety": <safety>, "safetyLabel": <safety-label> }`. It returns `null` if the selected post is no longer a
+  static image or the owner no longer has `posts:view` permission.
 
 ## Micro user
 **Description**
@@ -2424,7 +2527,9 @@ One file together with its metadata posted to the site.
     "creationTime":       <creation-time>,
     "lastEditTime":       <last-edit-time>,
     "safety":             <safety>,
+    "safetyLabel":        <safety-label>,
     "source":             <source>,
+    "description":        <description>,
     "type":               <type>,
     "checksum":           <checksum>,
     "checksumMD5":        <checksum-MD5>,
@@ -2477,7 +2582,26 @@ One file together with its metadata posted to the site.
     - `"sketchy"`
     - `"unsafe"`
 
+    These canonical API values and stored database values remain unchanged.
+    Create, update, and bulk safety requests also accept the labels `Arf`,
+    `Murr?`, and `Huff!`, case-insensitively. Search supports the same aliases
+    for `safety:` and `rating:` queries, while retaining existing values and
+    the `questionable` search alias.
+
+- `<safety-label>`: the UI rating label: `Arf` for `safe`, `Murr?` for
+  `sketchy`, and `Huff!` for `unsafe`. `/info` exposes this mapping as
+  `config.safetyLabels`, so API clients can display the same labels without
+  changing the canonical safety values. No database migration is needed.
+
 - `<source>`: where the post was grabbed form, supplied by the user.
+- `<description>`: optional long-form Markdown source. Existing posts return an
+  empty string. Send an empty string to clear it; omit it to preserve the current
+  description. Uploaders can edit their own descriptions through
+  `posts:edit:own:description` (regular users by default). Editing another
+  uploader's description requires `posts:edit:description` (moderator by
+  default). Anonymous posts have no owner. Other regular-user post edits are
+  limited to tags and image notes. The client sanitizes rendered Markdown; the
+  API stores the original text.
 - `<type>`: the type of the post.
 
     Available values:

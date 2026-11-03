@@ -5,6 +5,63 @@ $upload-border-color = #DDD
 $cancel-button-color = tomato
 
 #post-upload
+    .post-import
+        box-sizing: border-box
+        width: 100%
+        max-width: 40em
+        margin: 0 auto 1.5em
+        padding: 1em
+        border: 1px solid $upload-border-color
+
+        h2
+            margin: 0 0 0.6em
+
+        p
+            margin: 0.6em 0
+
+        label
+            display: block
+            margin-bottom: 0.4em
+
+        .hint
+            font-size: 90%
+
+        .post-import-controls
+            display: flex
+            flex-wrap: wrap
+            gap: 0.5em
+
+            input
+                flex: 1 1 15em
+                min-width: 0
+
+            button
+                flex: 0 0 auto
+
+    .post-sources-input
+        margin: 1em 0
+
+        label
+            display: block
+            margin-bottom: 0.4em
+
+        textarea
+            display: block
+            box-sizing: border-box
+            width: 100%
+            resize: vertical
+
+    .import-summary
+        overflow-wrap: anywhere
+        font-size: 90%
+
+        p
+            margin: 0.6em 0
+
+        .import-warning
+            padding-left: 0.6em
+            border-left: 3px solid $main-color
+
     form
         width: 100%
         max-width: 40em

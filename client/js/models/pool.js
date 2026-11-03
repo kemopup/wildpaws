@@ -36,7 +36,7 @@ class Pool extends events.EventTarget {
     }
 
     get posts() {
-        return this._postsMicro || this._posts;
+        return this._posts;
     }
 
     get postCount() {
@@ -104,7 +104,10 @@ class Pool extends events.EventTarget {
         if (this._description !== this._orig._description) {
             detail.description = this._description;
         }
-        if (misc.arraysDiffer(this._posts, this._orig._posts)) {
+        if (misc.arraysDiffer(
+            this._posts.map((post) => post.id),
+            this._orig._posts.map((post) => post.id), true
+        )) {
             detail.posts = this._posts.map((post) => post.id);
         }
 
@@ -185,7 +188,6 @@ class Pool extends events.EventTarget {
             _creationTime: response.creationTime,
             _lastEditTime: response.lastEditTime,
             _postCount: response.postCount || 0,
-            _postsMicro: response.postsMicro,
             _firstPost: response.firstPost || null,
             _lastPost: response.lastPost || null,
             _previousPost: response.previousPost || null,
@@ -193,7 +195,7 @@ class Pool extends events.EventTarget {
         };
 
         for (let obj of [this, this._orig]) {
-            obj._posts.sync(response.posts || []);
+            obj._posts.sync(response.posts || response.postsMicro || []);
         }
 
         Object.assign(this, map);

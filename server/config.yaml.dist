@@ -23,6 +23,33 @@ thumbnails:
 user_agent:
 max_dl_filesize: 25.0E+6 # maximum filesize limit in bytes
 
+# Optional server-side accounts for metadata imports. Put real credentials only
+# in your private config.yaml, never in this file or in browser-side settings.
+# A shared account's readable metadata is available to logged-in uploaders.
+post_import:
+    user_agent: 'Wildpaws/1.0 (https://github.com/kemopup/wildpaws)'
+    e621:
+        username:
+        api_key:
+    e6ai:
+        username:
+        api_key:
+    rule34:
+        user_id:
+        api_key:
+    gelbooru:
+        user_id:
+        api_key:
+    # Inkbunny uses an API-enabled account password rather than an API key.
+    # Leave both blank for guest access. Registered-account ratings are respected.
+    inkbunny:
+        username:
+        password:
+    # Values only from an active Fur Affinity login; never a complete Cookie header.
+    furaffinity:
+        a:
+        b:
+
 # automatically convert animated GIF uploads to video formats
 convert:
    gif:
@@ -81,6 +108,7 @@ privileges:
     'users:edit:self:pass':         regular
     'users:edit:self:email':        regular
     'users:edit:self:avatar':       regular
+    'users:edit:self:wallpaper':    regular
     'users:edit:self:rank':         moderator # one can't promote themselves or anyone to upper rank than their own.
     'users:delete:any':             administrator
     'users:delete:self':            regular
@@ -100,22 +128,24 @@ privileges:
     'posts:reverse_search':         regular
     'posts:view':                   anonymous
     'posts:view:featured':          anonymous
-    'posts:edit:content':           power
-    'posts:edit:flags':             regular
+    'posts:edit:content':           moderator
+    'posts:edit:flags':             moderator
     'posts:edit:notes':             regular
-    'posts:edit:relations':         regular
-    'posts:edit:safety':            power
-    'posts:edit:source':            regular
+    'posts:edit:relations':         moderator
+    'posts:edit:safety':            moderator
+    'posts:edit:source':            moderator
+    'posts:edit:description':       moderator
+    'posts:edit:own:description':   regular
     'posts:edit:tags':              regular
-    'posts:edit:thumbnail':         power
+    'posts:edit:thumbnail':         moderator
     'posts:feature':                moderator
     'posts:delete':                 moderator
     'posts:score':                  regular
     'posts:merge':                  moderator
     'posts:favorite':               regular
     'posts:bulk-edit:tags':         power
-    'posts:bulk-edit:safety':       power
-    'posts:bulk-edit:delete':       power
+    'posts:bulk-edit:safety':       moderator
+    'posts:bulk-edit:delete':       moderator
 
     'tags:create':                  regular
     'tags:edit:names':              power

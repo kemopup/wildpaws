@@ -5,6 +5,7 @@ from szurubooru import db, errors, model, rest, search
 from szurubooru.func import (
     auth,
     favorites,
+    post_imports,
     posts,
     scores,
     serialization,
@@ -66,6 +67,7 @@ def create_post(
     tag_names = ctx.get_param_as_string_list("tags", default=[])
     safety = ctx.get_param_as_string("safety")
     source = ctx.get_param_as_string("source", default="")
+    description = ctx.get_param_as_string("description", default="")
     if ctx.has_param("contentUrl") and not source:
         source = ctx.get_param_as_string("contentUrl", default="")
     relations = ctx.get_param_as_int_list("relations", default=[])
@@ -79,8 +81,13 @@ def create_post(
     )
     if len(new_tags):
         auth.verify_privilege(ctx.user, "tags:create")
+    if ctx.has_param("tagCategories"):
+        post_imports.apply_tag_categories(
+            new_tags, ctx.get_param_as_dict("tagCategories")
+        )
     posts.update_post_safety(post, safety)
     posts.update_post_source(post, source)
+    posts.update_post_description(post, description)
     posts.update_post_relations(post, relations)
     posts.update_post_notes(post, notes)
     posts.update_post_flags(post, flags)
@@ -119,6 +126,8 @@ def get_post(ctx: rest.Context, params: Dict[str, str]) -> rest.Response:
 def update_post(ctx: rest.Context, params: Dict[str, str]) -> rest.Response:
     post = _get_post(params)
     versions.verify_version(post, ctx)
+    if ctx.has_param("description"):
+        auth.verify_post_description_privilege(ctx.user, post)
     versions.bump_version(post)
     if ctx.has_file("content"):
         auth.verify_privilege(ctx.user, "posts:edit:content")
@@ -148,7 +157,12 @@ def update_post(ctx: rest.Context, params: Dict[str, str]) -> rest.Response:
         auth.verify_privilege(ctx.user, "posts:edit:source")
         posts.update_post_source(post, ctx.get_param_as_string("source"))
     elif ctx.has_param("contentUrl"):
+        auth.verify_privilege(ctx.user, "posts:edit:source")
         posts.update_post_source(post, ctx.get_param_as_string("contentUrl"))
+    if ctx.has_param("description"):
+        posts.update_post_description(
+            post, ctx.get_param_as_string("description")
+        )
     if ctx.has_param("relations"):
         auth.verify_privilege(ctx.user, "posts:edit:relations")
         posts.update_post_relations(

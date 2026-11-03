@@ -139,7 +139,7 @@ function createRenderer() {
     return renderer;
 }
 
-function formatMarkdown(text) {
+function formatMarkdown(text, allowHeadings = false) {
     const renderer = createRenderer();
     const options = {
         renderer: renderer,
@@ -149,7 +149,7 @@ function formatMarkdown(text) {
     let wrappers = [
         new SjisWrapper(),
         new TildeWrapper(),
-        new TagPermalinkFixWrapper(),
+        ...(allowHeadings ? [] : [new TagPermalinkFixWrapper()]),
         new EntityPermalinkWrapper(),
         new SearchPermalinkWrapper(),
         new SpoilersWrapper(),

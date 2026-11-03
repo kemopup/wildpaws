@@ -34,6 +34,21 @@ class User(Base):
     avatar_style = sa.Column(
         "avatar_style", sa.Unicode(32), nullable=False, default=AVATAR_GRAVATAR
     )
+    wallpaper_post_id = sa.Column(
+        "wallpaper_post_id",
+        sa.Integer,
+        sa.ForeignKey(
+            "post.id",
+            name="fk_user_wallpaper_post_id",
+            ondelete="SET NULL",
+            use_alter=True,
+        ),
+        nullable=True,
+        index=True,
+    )
+    wallpaper_post = sa.orm.relationship(
+        "Post", foreign_keys=[wallpaper_post_id]
+    )
 
     comments = sa.orm.relationship("Comment")
 

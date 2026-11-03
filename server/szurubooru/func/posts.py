@@ -86,6 +86,17 @@ SAFETY_MAP = {
     model.Post.SAFETY_UNSAFE: "unsafe",
 }
 
+SAFETY_LABELS = {
+    model.Post.SAFETY_SAFE: "Arf",
+    model.Post.SAFETY_SKETCHY: "Murr?",
+    model.Post.SAFETY_UNSAFE: "Huff!",
+}
+
+SAFETY_INPUT_MAP = {
+    **util.flip(SAFETY_MAP),
+    **{label.lower(): value for value, label in SAFETY_LABELS.items()},
+}
+
 TYPE_MAP = {
     model.Post.TYPE_IMAGE: "image",
     model.Post.TYPE_ANIMATION: "animation",
@@ -179,7 +190,9 @@ class PostSerializer(serialization.BaseSerializer):
             "creationTime": self.serialize_creation_time,
             "lastEditTime": self.serialize_last_edit_time,
             "safety": self.serialize_safety,
+            "safetyLabel": self.serialize_safety_label,
             "source": self.serialize_source,
+            "description": self.serialize_description,
             "type": self.serialize_type,
             "mimeType": self.serialize_mime,
             "checksum": self.serialize_checksum,
@@ -225,8 +238,14 @@ class PostSerializer(serialization.BaseSerializer):
     def serialize_safety(self) -> Any:
         return SAFETY_MAP[self.post.safety]
 
+    def serialize_safety_label(self) -> Any:
+        return SAFETY_LABELS[self.post.safety]
+
     def serialize_source(self) -> Any:
         return self.post.source
+
+    def serialize_description(self) -> Any:
+        return self.post.description or ""
 
     def serialize_type(self) -> Any:
         return TYPE_MAP[self.post.type]
@@ -438,12 +457,20 @@ def create_post(
 
 def update_post_safety(post: model.Post, safety: str) -> None:
     assert post
-    safety = util.flip(SAFETY_MAP).get(safety, None)
+    safety = SAFETY_INPUT_MAP.get(safety.lower(), None)
     if not safety:
         raise InvalidPostSafetyError(
-            "Safety can be either of %r." % list(SAFETY_MAP.values())
+            "Safety can be either of %r."
+            % (list(SAFETY_MAP.values()) + list(SAFETY_LABELS.values()))
         )
     post.safety = safety
+
+
+def update_post_description(
+    post: model.Post, description: Optional[str]
+) -> None:
+    assert post
+    post.description = description or None
 
 
 def update_post_source(post: model.Post, source: Optional[str]) -> None:
@@ -517,6 +544,7 @@ def generate_alternate_formats(
             update_post_flags(mp4_post, ["loop"])
             update_post_safety(mp4_post, post.safety)
             update_post_source(mp4_post, post.source)
+            update_post_description(mp4_post, post.description)
             new_posts += [(mp4_post, new_tags)]
 
         if config.config["convert"]["gif"]["to_webm"]:
@@ -526,6 +554,7 @@ def generate_alternate_formats(
             update_post_flags(webm_post, ["loop"])
             update_post_safety(webm_post, post.safety)
             update_post_source(webm_post, post.source)
+            update_post_description(webm_post, post.description)
             new_posts += [(webm_post, new_tags)]
 
         db.session.flush()

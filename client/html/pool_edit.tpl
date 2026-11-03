@@ -31,10 +31,11 @@
             <li class='posts'>
                 <% if (ctx.canEditPosts) { %>
                     <%= ctx.makeTextInput({
-                        text: 'Posts',
+                        text: 'Posts (in display order)',
                         placeholder: 'space-separated post IDs',
                         value: ctx.pool.posts.map(post => post.id).join(' ')
                     }) %>
+                    <p class='hint'>Enter post IDs from first to last, separated by spaces. For example, 42 17 9 puts post 42 first. Reordering does not remove posts unless you omit their IDs.</p>
                 <% } %>
             </li>
         </ul>

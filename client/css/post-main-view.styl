@@ -39,15 +39,21 @@
 
     >.content
         width: 100%
+        min-width: 0
+        max-width: 1200px
+        flex: 1 1 0
 
     .post-container
         margin-bottom: 0.6em
+        max-width: 100%
+        overflow-x: auto
 
         .post-content
             margin: 0
 
     .after-mobile-controls
         width: 100%
+        max-width: 1200px
 
 .darktheme .post-view
     >.sidebar, >.content
@@ -69,6 +75,7 @@
             margin-right: 0
         >.content
             order: 1
+            flex-basis: 100%
 
 
 .post-view .readonly-sidebar

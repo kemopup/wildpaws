@@ -2,7 +2,6 @@
 
 const router = require("../router.js");
 const api = require("../api.js");
-const settings = require("../models/settings.js");
 const uri = require("../util/uri.js");
 const PoolList = require("../models/pool_list.js");
 const topNavigation = require("../models/top_navigation.js");
@@ -100,8 +99,7 @@ class PoolListController {
                 return uri.formatClientLink("pools", parameters);
             },
             requestPage: (offset, limit) => {
-                const canEditPosts = api.hasPrivilege("pools:edit") || api.hasPrivilege("pools:edit:posts");
-                const effectiveFields = fields.concat([canEditPosts ? "posts": "postsMicro"]);
+                const effectiveFields = fields.concat(["postsMicro"]);
                 return PoolList.search(
                     this._ctx.parameters.query,
                     offset,
@@ -113,7 +111,6 @@ class PoolListController {
                 Object.assign(pageCtx, {
                     canViewPosts: api.hasPrivilege("posts:view"),
                     canViewPools: api.hasPrivilege("pools:view"),
-                    postFlow: settings.get().postFlow,
                 });
                 return new PoolsPageView(pageCtx);
             },

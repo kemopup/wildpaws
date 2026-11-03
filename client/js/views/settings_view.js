@@ -12,12 +12,41 @@ class SettingsView extends events.EventTarget {
         this._hostNode = document.getElementById("content-holder");
         views.replaceContent(
             this._hostNode,
-            template({ browsingSettings: ctx.settings })
+            template({
+                browsingSettings: ctx.settings,
+                user: ctx.user,
+                canSetWallpaper: ctx.canSetWallpaper,
+            })
         );
         views.syncScrollPosition();
 
         views.decorateValidator(this._formNode);
         this._formNode.addEventListener("submit", (e) => this._evtSubmit(e));
+        const resetWallpaper = this._hostNode.querySelector(".reset-wallpaper");
+        if (resetWallpaper) {
+            resetWallpaper.addEventListener("click", () => {
+                this.dispatchEvent(new CustomEvent("resetWallpaper"));
+            });
+        }
+    }
+
+    setWallpaperPending(pending) {
+        const section = this._hostNode.querySelector(".site-wallpaper-settings");
+        views.clearMessages(section);
+        section.querySelector("button").disabled = pending;
+    }
+
+    wallpaperReset() {
+        const section = this._hostNode.querySelector(".site-wallpaper-settings");
+        section.querySelector(".current-wallpaper").textContent = "Using the default site wallpaper.";
+        section.querySelector("button").disabled = true;
+        views.showSuccess(section, "Default wallpaper restored.");
+    }
+
+    showWallpaperError(message) {
+        const section = this._hostNode.querySelector(".site-wallpaper-settings");
+        section.querySelector("button").disabled = false;
+        views.showError(section, message);
     }
 
     clearMessages() {

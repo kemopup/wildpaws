@@ -243,6 +243,10 @@ function bundleConfig() {
 
 function bundleBinaryAssets() {
     fs.copyFileSync('./img/favicon.png', './public/img/favicon.png');
+    fs.mkdirSync('./public/img/wallpapers', { recursive: true });
+    for (const file of glob.sync('./img/wallpapers/*.png')) {
+        fs.copyFileSync(file, path.join('./public/img/wallpapers', path.basename(file)));
+    }
     console.info('Copied images');
 
     fs.copyFileSync('./fonts/open_sans.woff2', './public/fonts/open_sans.woff2')
@@ -339,6 +343,7 @@ function watch() {
     });
     chokidar.watch('./img/**/*').on('change', () => {
         try {
+            bundleBinaryAssets();
             bundleWebAppFiles();
             emitReload();
         } catch (e) {

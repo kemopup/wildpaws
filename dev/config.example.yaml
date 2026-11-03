@@ -1,0 +1,8 @@
+# Local overrides; dev.ps1 creates config.local.yaml with a random secret.
+name: WildPaws (local development)
+domain: http://localhost:8088
+secret: __DEV_SECRET__
+# Email and webhooks stay disabled in development.
+smtp:
+  host: null
+webhooks: []

@@ -224,7 +224,9 @@ def test_serialize_post(
             "creationTime": datetime(1997, 1, 1),
             "lastEditTime": datetime(1998, 1, 1),
             "safety": "safe",
+            "safetyLabel": "Arf",
             "source": "4gag",
+            "description": "",
             "type": "image",
             "checksum": "deadbeef",
             "checksumMD5": "deadbeef",
@@ -350,6 +352,12 @@ def test_create_post(user_factory, fake_datetime):
         ("safe", model.Post.SAFETY_SAFE),
         ("sketchy", model.Post.SAFETY_SKETCHY),
         ("unsafe", model.Post.SAFETY_UNSAFE),
+        ("Arf", model.Post.SAFETY_SAFE),
+        ("aRf", model.Post.SAFETY_SAFE),
+        ("Murr?", model.Post.SAFETY_SKETCHY),
+        ("MURR?", model.Post.SAFETY_SKETCHY),
+        ("Huff!", model.Post.SAFETY_UNSAFE),
+        ("hUFF!", model.Post.SAFETY_UNSAFE),
     ],
 )
 def test_update_post_safety(input_safety, expected_safety):

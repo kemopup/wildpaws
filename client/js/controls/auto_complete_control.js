@@ -32,6 +32,7 @@ class AutoCompleteControl {
             {
                 verticalShift: 2,
                 maxResults: 15,
+                suggestionContainer: null,
                 getTextToFind: () => {
                     const value = sourceInputNode.value;
                     const start = _getSelectionStart(sourceInputNode);
@@ -129,7 +130,8 @@ class AutoCompleteControl {
             '<div class="autocomplete"><ul></ul></div>'
         );
         this._suggestionList = this._suggestionDiv.querySelector("ul");
-        document.body.appendChild(this._suggestionDiv);
+        const container = this._options.suggestionContainer || document.body;
+        container.appendChild(this._suggestionDiv);
 
         views.monitorNodeRemoval(this._sourceInputNode, () => {
             this._uninstall();
@@ -138,7 +140,9 @@ class AutoCompleteControl {
 
     _uninstall() {
         window.clearTimeout(this._showTimeout);
-        document.body.removeChild(this._suggestionDiv);
+        if (this._suggestionDiv.parentNode) {
+            this._suggestionDiv.parentNode.removeChild(this._suggestionDiv);
+        }
     }
 
     _evtKeyDown(e) {
@@ -271,6 +275,13 @@ class AutoCompleteControl {
             this._suggestionList.appendChild(listItem);
         }
         this._refreshActiveResult();
+
+        // Upload rows contain suggestions beneath their tag field. Other callers
+        // retain the existing body-relative positioning and direction rules.
+        if (this._options.suggestionContainer) {
+            this._show();
+            return;
+        }
 
         // display the suggestions offscreen to get the height
         this._suggestionDiv.style.left = "-9999px";

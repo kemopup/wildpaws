@@ -2,15 +2,16 @@ import json
 import logging
 import subprocess
 import urllib.error
+import urllib.parse
 import urllib.request
 from threading import Thread
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from szurubooru import config, errors
-from szurubooru.func import mime
+from szurubooru.func import bluesky_network, mime
 
 logger = logging.getLogger(__name__)
-_dl_chunk_size = 2 ** 15
+_dl_chunk_size = 2**15
 
 
 class DownloadError(errors.ProcessingError):
@@ -21,8 +22,93 @@ class DownloadTooLargeError(DownloadError):
     pass
 
 
+def get_import_user_agent() -> str:
+    settings = config.config.get("post_import", {}) or {}
+    return settings.get("user_agent") or (
+        "Wildpaws/1.0 (https://github.com/kemopup/wildpaws)"
+    )
+
+
+def _get_download_user_agent(url: str) -> Optional[str]:
+    if config.config.get("user_agent"):
+        return config.config["user_agent"]
+    try:
+        parsed = urllib.parse.urlsplit(url)
+        if (
+            parsed.scheme == "https"
+            and not parsed.username
+            and not parsed.password
+            and parsed.port in (None, 443)
+            and any(
+                parsed.hostname == domain
+                or (parsed.hostname or "").endswith("." + domain)
+                for domain in (
+                    "e621.net",
+                    "e6ai.net",
+                    "rule34.xxx",
+                    "rule34.us",
+                    "tbib.org",
+                    "gelbooru.com",
+                    "pbs.twimg.com",
+                    "video.twimg.com",
+                    "inkbunny.net",
+                    "ib.metapix.net",
+                    "furaffinity.net",
+                    "cdn.bsky.app",
+                    "video.bsky.app",
+                )
+            )
+        ):
+            return get_import_user_agent()
+    except ValueError:
+        pass
+    return None
+
+
+def _get_download_referer(url: str) -> str:
+    try:
+        parsed = urllib.parse.urlsplit(url)
+        if (
+            parsed.scheme == "https"
+            and not parsed.username
+            and not parsed.password
+            and parsed.port in (None, 443)
+        ):
+            for domain in ("tbib.org", "gelbooru.com"):
+                if parsed.hostname == domain or (
+                    parsed.hostname or ""
+                ).endswith("." + domain):
+                    return "https://" + domain + "/"
+            if parsed.hostname == "furaffinity.net" or (
+                parsed.hostname or ""
+            ).endswith(".furaffinity.net"):
+                return "https://www.furaffinity.net/"
+            if (
+                parsed.hostname == "inkbunny.net"
+                or any(
+                    (parsed.hostname or "").endswith("." + domain)
+                    for domain in ("inkbunny.net", "ib.metapix.net")
+                )
+                or parsed.hostname == "ib.metapix.net"
+            ):
+                return "https://inkbunny.net/"
+    except ValueError:
+        pass
+    return url
+
+
+def _download_bluesky_blob(url: str) -> bytes:
+    return bluesky_network.download_blob(
+        url,
+        config.config["max_dl_filesize"],
+        user_agent=_get_download_user_agent(url) or get_import_user_agent(),
+    )
+
+
 def download(url: str, use_video_downloader: bool = False) -> bytes:
     assert url
+    if bluesky_network.is_blob_url(url):
+        return _download_bluesky_blob(url)
     youtube_dl_error = None
     if use_video_downloader:
         try:
@@ -30,10 +116,14 @@ def download(url: str, use_video_downloader: bool = False) -> bytes:
         except errors.ThirdPartyError as ex:
             youtube_dl_error = ex
 
+    if bluesky_network.is_blob_url(url):
+        return _download_bluesky_blob(url)
+
     request = urllib.request.Request(url)
-    if config.config["user_agent"]:
-        request.add_header("User-Agent", config.config["user_agent"])
-    request.add_header("Referer", url)
+    user_agent = _get_download_user_agent(url)
+    if user_agent:
+        request.add_header("User-Agent", user_agent)
+    request.add_header("Referer", _get_download_referer(url))
 
     content_buffer = b""
     length_tally = 0

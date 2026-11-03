@@ -1,0 +1,14 @@
+# Pinned helper-only dependencies; the main Wildpaws Python stack is unchanged.
+faapi==3.12.7
+requests==2.34.2
+beautifulsoup4==4.15.0
+lxml==6.1.3
+python-dateutil==2.9.0.post0
+bbcode==1.1.0
+certifi==2026.10.23
+charset-normalizer==3.5.2
+idna==3.20
+urllib3==2.8.0
+soupsieve==3.0.4
+typing-extensions==4.16.0
+six==1.17.0

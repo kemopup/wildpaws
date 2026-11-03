@@ -30,11 +30,11 @@ def _type_transformer(value: str) -> str:
 
 
 def _safety_transformer(value: str) -> str:
+    from szurubooru.func import posts
+
     available_values = {
-        "safe": model.Post.SAFETY_SAFE,
-        "sketchy": model.Post.SAFETY_SKETCHY,
+        **posts.SAFETY_INPUT_MAP,
         "questionable": model.Post.SAFETY_SKETCHY,
-        "unsafe": model.Post.SAFETY_UNSAFE,
     }
     return search_util.enum_transformer(available_values, value)
 
@@ -194,8 +194,16 @@ class PostSearchConfig(BaseSearchConfig):
         search_query.special_tokens = new_special_tokens
         self.pool_id = None
         for token in search_query.named_tokens:
-            if token.name == "pool" and isinstance(token.criterion, criteria.PlainCriterion):
+            if (
+                token.name == "pool"
+                and not token.negated
+                and isinstance(token.criterion, criteria.PlainCriterion)
+            ):
                 self.pool_id = token.criterion.value
+        if self.pool_id is not None and not search_query.sort_tokens:
+            search_query.sort_tokens.append(
+                tokens.SortToken("pool", tokens.SortToken.SORT_ASC)
+            )
 
     def create_around_query(self) -> SaQuery:
         return db.session.query(model.Post).options(sa.orm.lazyload("*"))

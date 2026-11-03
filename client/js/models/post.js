@@ -74,6 +74,10 @@ class Post extends events.EventTarget {
         return this._source;
     }
 
+    get description() {
+        return this._description || "";
+    }
+
     get sourceSplit() {
         return this._source.split("\n");
     }
@@ -172,6 +176,10 @@ class Post extends events.EventTarget {
 
     set source(value) {
         this._source = value;
+    }
+
+    set description(value) {
+        this._description = value;
     }
 
     static fromResponse(response) {
@@ -277,6 +285,12 @@ class Post extends events.EventTarget {
         if (this._source !== this._orig._source) {
             detail.source = this._source;
         }
+        if (this._description !== this._orig._description) {
+            detail.description = this._description;
+        }
+        if (!this._id && this.importTagCategories) {
+            detail.tagCategories = this.importTagCategories;
+        }
 
         let apiPromise = this._id
             ? api.put(uri.formatApiLink("post", this.id), detail, files)
@@ -324,6 +338,19 @@ class Post extends events.EventTarget {
                     return Promise.reject(error);
                 }
             );
+    }
+
+    saveDescription(description) {
+        return api.put(uri.formatApiLink("post", this.id), {
+            version: this._version,
+            description: description,
+        }).then((response) => {
+            // Keep pending tag, note, and other sidebar edits untouched.
+            for (const target of [this, this._orig]) {
+                target._version = response.version;
+                target._description = response.description || "";
+            }
+        });
     }
 
     feature() {
@@ -479,6 +506,7 @@ class Post extends events.EventTarget {
             ).href,
             _thumbnailUrl: response.thumbnailUrl,
             _source: response.source,
+            _description: response.description || "",
             _canvasWidth: response.canvasWidth,
             _canvasHeight: response.canvasHeight,
             _fileSize: response.fileSize,

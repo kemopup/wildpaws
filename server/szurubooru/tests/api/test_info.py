@@ -43,6 +43,7 @@ def test_info_api(
         "name": "test installation",
         "contactEmail": "test@example.com",
         "enableSafety": True,
+        "safetyLabels": {"safe": "Arf", "sketchy": "Murr?", "unsafe": "Huff!"},
         "userNameRegex": "1",
         "passwordRegex": "2",
         "tagNameRegex": "3",

@@ -1,6 +1,7 @@
 "use strict";
 
 const views = require("../util/views.js");
+const { formatSafetyLabel } = require("../util/safety.js");
 
 const template = views.getTemplate("snapshots-page");
 
@@ -53,7 +54,9 @@ function _makeItemCreation(type, data) {
                 lines.push(`${text}: ${data[key].join(", ")}`);
             }
         } else {
-            lines.push(`${text}: ${data[key]}`);
+            const value = type === "post" && key === "safety"
+                ? formatSafetyLabel(data[key]) : data[key];
+            lines.push(`${text}: ${value}`);
         }
     }
     return lines.join("<br/>");
@@ -102,7 +105,10 @@ function _makeItemModification(type, data) {
             _extend(lines, _formatBasicChange(diff.source, "source"));
         }
         if (diff.safety) {
-            _extend(lines, _formatBasicChange(diff.safety, "safety"));
+            _extend(lines, _formatBasicChange(Object.assign({}, diff.safety, {
+                "old-value": formatSafetyLabel(diff.safety["old-value"]),
+                "new-value": formatSafetyLabel(diff.safety["new-value"]),
+            }), "safety"));
         }
         if (diff.tags) {
             _extend(lines, _formatBasicChange(diff.tags, "tags"));

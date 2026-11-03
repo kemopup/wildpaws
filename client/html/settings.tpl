@@ -1,4 +1,21 @@
 <div class='content-wrapper' id='settings'>
+    <section class='site-wallpaper-settings'>
+        <h2>Site wallpaper</h2>
+        <% if (ctx.canSetWallpaper) { %>
+            <p>Choose an image post and click <strong>Set as site wallpaper</strong>. Your choice follows your account across devices.</p>
+            <p class='current-wallpaper'>
+                <% if (ctx.user.wallpaper) { %>
+                    Current wallpaper: <a href='<%= ctx.formatClientLink('post', ctx.user.wallpaper.postId) %>'>Post #<%- ctx.user.wallpaper.postId %></a>
+                <% } else { %>
+                    Using the default site wallpaper.
+                <% } %>
+            </p>
+            <button type='button' class='reset-wallpaper' <%= ctx.user.wallpaper ? '' : 'disabled' %>>Use default wallpaper</button>
+        <% } else { %>
+            <p>Log in to choose an image post as your site wallpaper.</p>
+        <% } %>
+        <div class='messages' role='status'></div>
+    </section>
     <form>
         <strong>Browsing settings</strong>
         <p>These settings are saved to the browser's local storage and are not coupled to the user account, so they don't apply to other devices or browsers alike.</p>

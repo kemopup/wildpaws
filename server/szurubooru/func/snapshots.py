@@ -48,6 +48,7 @@ def get_post_snapshot(post: model.Post) -> Dict[str, Any]:
     assert post
     return {
         "source": post.source,
+        "description": post.description or "",
         "safety": post.safety,
         "checksum": post.checksum,
         "flags": post.flags,

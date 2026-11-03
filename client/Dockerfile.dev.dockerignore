@@ -1,0 +1,8 @@
+node_modules/
+public/
+js/.config.autogen.json
+js/.templates.autogen.js
+.git/
+Dockerfile
+Dockerfile.dev
+Dockerfile.dev.dockerignore

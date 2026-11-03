@@ -17,13 +17,26 @@ $inactive-tab-text-color-darktheme = $inactive-link-color-darktheme
 /* make <body> cover entire viewport */
 html
     height: 100%
+    --site-wallpaper-default-image: url('../img/wallpapers/bytepaws-holographic-pack.png')
+    --site-wallpaper-default-size: 800px
+    --site-wallpaper-default-repeat: repeat
+    background-color: #080611
+    background-image: var(--site-wallpaper-image, var(--site-wallpaper-default-image, none))
+    background-position: center top
+    background-size: var(--site-wallpaper-size, var(--site-wallpaper-default-size, cover))
+    background-repeat: var(--site-wallpaper-repeat, var(--site-wallpaper-default-repeat, no-repeat))
+    background-attachment: fixed
 body
     min-height: 100%
 
 body
     background: $window-color
     overflow-y: scroll
-    margin: 0
+    width: 100%
+    max-width: calc(1200px + 25em)
+    margin: 0 auto
+    box-sizing: border-box
+    box-shadow: 0 0 4em rgba(0, 0, 0, 0.45)
     color: $text-color
     font-family: 'Open Sans', sans-serif
     font-size: 1em

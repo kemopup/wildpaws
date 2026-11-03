@@ -45,7 +45,7 @@
                         <% if (ctx.canBulkEditSafety && ctx.parameters && ctx.parameters.safety) { %>
                             <span class='safety-flipper'>
                                 <% for (let safety of ['safe', 'sketchy', 'unsafe']) { %>
-                                    <a href data-safety='<%- safety %>' class='safety-<%- safety %><%- post.safety === safety ? ' active' : '' %>'>
+                                    <a href data-safety='<%- safety %>' title='Set safety to <%- ctx.formatSafetyLabel(safety) %>' aria-label='Set safety to <%- ctx.formatSafetyLabel(safety) %>' class='safety-<%- safety %><%- post.safety === safety ? ' active' : '' %>'><%- ctx.formatSafetyLabel(safety) %>
                                     </a>
                                 <% } %>
                             </span>

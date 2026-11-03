@@ -94,8 +94,8 @@ function formatRelativeTime(timeString) {
     return future ? "in " + text : text + " ago";
 }
 
-function formatMarkdown(text) {
-    return markdown.formatMarkdown(text);
+function formatMarkdown(text, allowHeadings = false) {
+    return markdown.formatMarkdown(text, allowHeadings);
 }
 
 function formatInlineMarkdown(text) {

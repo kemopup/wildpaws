@@ -10,6 +10,7 @@ const PostContentControl = require("../controls/post_content_control.js");
 const PostNotesOverlayControl = require("../controls/post_notes_overlay_control.js");
 const PostReadonlySidebarControl = require("../controls/post_readonly_sidebar_control.js");
 const PostEditSidebarControl = require("../controls/post_edit_sidebar_control.js");
+const PostDescriptionControl = require("../controls/post_description_control.js");
 const PoolNavigatorListControl = require("../controls/pool_navigator_list_control.js");
 const CommentControl = require("../controls/comment_control.js");
 const CommentListControl = require("../controls/comment_list_control.js");
@@ -22,7 +23,6 @@ class PostMainView {
 
         const sourceNode = template(ctx);
         const postContainerNode = sourceNode.querySelector(".post-container");
-        const sidebarNode = sourceNode.querySelector(".sidebar");
         views.replaceContent(this._hostNode, sourceNode);
         if (typeof window.setupLightbox === "function") {
             window.setupLightbox();
@@ -36,15 +36,17 @@ class PostMainView {
             postContainerNode,
             ctx.post,
             () => {
-                const margin = sidebarNode.getBoundingClientRect().left;
+                const padding = window.getComputedStyle(this._hostNode);
+                const verticalPadding = parseFloat(padding.paddingTop) +
+                    parseFloat(padding.paddingBottom);
 
                 return [
-                    window.innerWidth -
-                        postContainerNode.getBoundingClientRect().left -
-                        margin,
-                    iosCorrectedInnerHeight() -
+                    Math.max(1, Math.min(
+                        1200, postContainerNode.parentElement.clientWidth
+                    )),
+                    Math.max(1, iosCorrectedInnerHeight() -
                         topNavigationNode.getBoundingClientRect().height -
-                        margin * 2,
+                        verticalPadding),
                 ];
             }
         );
@@ -61,6 +63,9 @@ class PostMainView {
         }
 
         this._installSidebar(ctx);
+        this.descriptionControl = new PostDescriptionControl(
+            this._hostNode.querySelector(".post-description"), ctx.post
+        );
         this._installCommentForm();
         this._installComments(ctx.post.comments);
         this._installPoolNavigators(ctx);

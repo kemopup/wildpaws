@@ -1,15 +1,21 @@
 <li class='uploadable-container'>
     <div class='thumbnail-wrapper'>
-        <% if (['image'].includes(ctx.uploadable.type)) { %>
+        <% if (ctx.uploadable.importInfo && ctx.uploadable.importInfo.provider === 'bluesky' && !ctx.uploadable.importPreviewUrl) { %>
 
-            <a href='<%= ctx.uploadable.previewUrl %>'>
+            <a href='<%- ctx.uploadable.url || ctx.uploadable.previewUrl %>'>
+                <span class='thumbnail empty' aria-label='Preview'></span>
+            </a>
+
+        <% } else if (ctx.uploadable.importPreviewUrl || ['image'].includes(ctx.uploadable.type)) { %>
+
+            <a href='<%- ctx.uploadable.url || ctx.uploadable.previewUrl %>'>
                 <%= ctx.makeThumbnail(ctx.uploadable.previewUrl) %>
             </a>
 
         <% } else if (['video'].includes(ctx.uploadable.type)) { %>
 
             <div class='thumbnail'>
-                <a href='<%= ctx.uploadable.previewUrl %>'>
+                <a href='<%- ctx.uploadable.previewUrl %>'>
                     <video id='video' nocontrols muted>
                         <source type='<%- ctx.uploadable.mimeType %>' src='<%- ctx.uploadable.previewUrl %>'/>
                     </video>
@@ -37,7 +43,7 @@
                 </ul>
             </nav>
 
-            <span class='filename'><%= ctx.uploadable.name %></span>
+            <span class='filename'><%- ctx.uploadable.name %></span>
         </header>
 
         <div class='body'>
@@ -47,7 +53,7 @@
                         <%= ctx.makeRadio({
                             name: 'safety-' + ctx.uploadable.key,
                             value: safety,
-                            text: safety[0].toUpperCase() + safety.substr(1),
+                            text: ctx.formatSafetyLabel(safety),
                             selectedValue: ctx.uploadable.safety,
                         }) %>
                     <% } %>
@@ -69,12 +75,42 @@
 
             <div class='messages'></div>
 
+            <% if (ctx.uploadable.importInfo) { %>
+                <div class='import-summary'>
+                    <p>Imported from <a href='<%- ctx.uploadable.importInfo.postUrl %>' target='_blank' rel='noopener noreferrer'><%- ctx.uploadable.importInfo.provider %></a>. Review before uploading.</p>
+                    <p><a href='<%- ctx.uploadable.url %>' target='_blank' rel='noopener noreferrer'>Original file</a></p>
+                    <% if (ctx.uploadable.importInfo.author) { %>
+                        <p>Post author: <a href='<%- ctx.uploadable.importInfo.author.url %>' target='_blank' rel='noopener noreferrer'>@<%- ctx.uploadable.importInfo.author.username %></a> (credited in description)</p>
+                    <% } %>
+                    <p>Artist tags: <%- ctx.uploadable.importInfo.artist.join(', ') || 'None supplied' %><br/>
+                    Character tags: <%- ctx.uploadable.importInfo.character.join(', ') || 'None supplied' %></p>
+                    <% for (const warning of ctx.uploadable.importInfo.warnings) { %>
+                        <p class='import-warning'><%- warning %></p>
+                    <% } %>
+                </div>
+            <% } %>
+
+            <div class='post-sources-input'>
+                <label for='upload-source-<%- ctx.uploadable.key %>'>Sources (one URL per line)</label>
+                <textarea id='upload-source-<%- ctx.uploadable.key %>' name='source' rows='3' placeholder='https://artist.example/post'><%- ctx.uploadable.source %></textarea>
+            </div>
+
+            <div class='post-tags-input'>
+                <label for='upload-tags-<%- ctx.uploadable.key %>'>Tags (separate with spaces)</label>
+                <input id='upload-tags-<%- ctx.uploadable.key %>' type='text' name='tags' value='<%- ctx.uploadable.manualTags %>' placeholder='wolf portrait blue_eyes' autocomplete='off'/>
+            </div>
+
+            <div class='post-description-input'>
+                <label for='upload-description-<%- ctx.uploadable.key %>'>Description (supports Markdown)</label>
+                <textarea id='upload-description-<%- ctx.uploadable.key %>' name='description' rows='6' placeholder='Describe this post (optional)'><%- ctx.uploadable.description %></textarea>
+            </div>
+
             <% if (ctx.uploadable.lookalikes.length) { %>
                 <ul class='lookalikes'>
                     <% for (let lookalike of ctx.uploadable.lookalikes) { %>
                         <li>
                             <a class='thumbnail-wrapper' title='@<%- lookalike.post.id %>'
-                                href='<%= ctx.canViewPosts ? ctx.getPostUrl(lookalike.post.id) : "" %>'>
+                                href='<%- ctx.canViewPosts ? ctx.getPostUrl(lookalike.post.id) : "" %>'>
                                 <%= ctx.makeThumbnail(lookalike.post.thumbnailUrl) %>
                             </a>
                             <div class='description'>
