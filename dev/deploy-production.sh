@@ -303,8 +303,13 @@ if ! git diff --quiet -- docker-compose.yml; then
     git diff --quiet "$old_head" "$commit" -- docker-compose.yml || die 'The update changes the locally customized Compose file; resolve that merge explicitly.'
 fi
 deploy_branch="codex/production-$stamp"
-private git switch -c "$deploy_branch"
-private git merge --ff-only "$commit"
+(
+    # Git source files need normal read permissions in non-root build stages.
+    # Keep the outer restrictive mask for private backups and configuration.
+    umask 022
+    private git switch -c "$deploy_branch"
+    private git merge --ff-only "$commit"
+)
 [[ "$(git rev-parse HEAD)" = "$commit" ]] || die 'The checkout does not match the reviewed commit.'
 [[ -f compose.importers.yaml ]] || die 'The reviewed commit must contain compose.importers.yaml.'
 "${compose[@]}" config --format json >"$backup/compose.after.json" 2>>"$log" || die 'Cannot resolve the deployment Compose configuration.'

@@ -4,7 +4,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 COPY requirements.txt ./
 RUN pip install --no-cache-dir --disable-pip-version-check -r requirements.txt \
     && useradd --system --uid 10001 --create-home importer
-COPY app.py ./
+COPY --chown=importer:importer --chmod=0644 app.py ./
 USER importer
 EXPOSE 8080
 HEALTHCHECK --interval=5s --timeout=3s --start-period=10s --retries=20 \
@@ -12,5 +12,5 @@ HEALTHCHECK --interval=5s --timeout=3s --start-period=10s --retries=20 \
 CMD ["python", "app.py"]
 
 FROM runtime AS testing
-COPY test_app.py ./
+COPY --chown=importer:importer --chmod=0644 test_app.py ./
 CMD ["python", "-m", "unittest", "-v", "test_app"]

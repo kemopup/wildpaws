@@ -347,6 +347,12 @@ files such as the old virtual environment. Tracked local changes other than the
 base Compose file, or an incoming change to that customized file, stop deployment
 for explicit resolution. There is no force checkout or stash.
 
+Git updates use normal source-file permissions, while backups and private
+configuration writes retain a restrictive umask. The helper image explicitly
+sets readable ownership/modes for its non-root process, and the client image
+ensures generated static assets are readable by nginx even from a restrictive
+build context.
+
 Production must use both Compose files:
 
 ```sh
